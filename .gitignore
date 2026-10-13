@@ -1,0 +1,39 @@
+# Secrets and environment
+.env
+*.env
+!*.env.example
+
+# VirusTotal Cache
+.vt_cache/
+vt_cache/
+
+# SQLite fallback DB & local DB files
+*.db
+*.sqlite
+*.sqlite3
+
+# Python cache & build
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Reports generated from local runs
+out.json
+out.md
+report.json
+report.md

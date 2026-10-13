@@ -1,0 +1,4 @@
+This is not a valid email message with headers.
+It has no from, to, or subject headers at all.
+--BROKEN_BOUNDARY_ONLY--
+random unparseable gibberish bytes

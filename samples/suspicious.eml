@@ -1,0 +1,35 @@
+From: "PayPal Support" <support@paypal.com>
+To: target-user@example.test
+Subject: Urgent: Verify your account immediately
+Date: Mon, 12 Oct 2026 10:15:00 +0000
+Message-ID: <threat-2002@evil.test>
+Reply-To: phisher-collector@evil.test
+Return-Path: <bounce@evil.test>
+Received: from unknown-vps.evil.test by mx.example.test; Mon, 12 Oct 2026 10:15:05 +0000
+Authentication-Results: mx.example.test;
+ spf=fail smtp.mailfrom=evil.test;
+ dkim=fail;
+ dmarc=fail action=quarantine
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY_SUSPICIOUS"
+
+--BOUNDARY_SUSPICIOUS
+Content-Type: text/html; charset="utf-8"
+
+<html>
+<body>
+<p>Dear Customer,</p>
+<p>Your PayPal account has been restricted due to suspicious activity. Verify now:</p>
+<p><a href="http://192.168.1.100/login-verify-account.xyz">Click Here To Restore Account</a></p>
+<p>Or visit: http://login-verify-paypal.xyz/auth</p>
+</body>
+</html>
+
+--BOUNDARY_SUSPICIOUS
+Content-Type: application/octet-stream; name="Urgent_Invoice.pdf.exe"
+Content-Disposition: attachment; filename="Urgent_Invoice.pdf.exe"
+Content-Transfer-Encoding: base64
+
+TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAA==
+
+--BOUNDARY_SUSPICIOUS--

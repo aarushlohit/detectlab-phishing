@@ -1,128 +1,164 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="landing-scroll-view">
-  <!-- Hero Section -->
-  <section class="landing-hero">
-    <div class="cute-tag">
-      <span class="cute-tag-dot"></span>
-      <span>SecOps Email Forensics</span>
+<div class="apple-landing-scroll">
+  
+  <!-- Apple Hero Section -->
+  <section class="apple-hero">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-accent">New</span>
+      <span class="eyebrow-text">DetectLab Forensics Engine 3.0</span>
     </div>
 
-    <h1 class="hero-headline">
-      Automated Phishing Analysis <br>
-      <span class="headline-gradient">Safe, Automated &amp; Explainable</span>
+    <h1 class="hero-title">
+      Automated Phishing Analysis.<br>
+      <span class="hero-gradient-text">Precise. Safe. Explainable.</span>
     </h1>
 
-    <p class="hero-subtext">
-      Inspect synthetic and authorized <code>.eml</code> samples without code execution or HTML rendering risks.
-      Powered by header verification, in-memory SHA-256 fingerprinting, and live VirusTotal v3 reputation intelligence.
+    <p class="hero-description">
+      Evaluate suspicious <code>.eml</code> messages inside an isolated in-memory execution sandbox.
+      Verifies cryptographic SPF/DKIM/DMARC provenance, audits embedded hyperlinks, and correlates threat intelligence with live VirusTotal API v3 telemetry.
     </p>
 
-    <div class="hero-action-buttons">
-      <a href="{{ url_for('workbench') }}" class="btn-hero-primary">
+    <div class="hero-cta-cluster">
+      <a href="{{ url_for('workbench') }}" class="btn-apple-large btn-apple-large-primary" id="launchTriageBtn">
         <span>Launch Triage Chat</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
-      <a href="#quick-drop-section" class="btn-hero-secondary">Quick File Drop</a>
-    </div>
-  </section>
-
-  <!-- Feature Grid -->
-  <section class="landing-cards-section">
-    <div class="cute-card">
-      <div class="card-icon-bubble">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-      <h3>Zero-Execution Sandbox</h3>
-      <p>Attachments are calculated strictly in-memory. Binary payloads are never unpacked, executed, or written to physical disks.</p>
+      <a href="#architecture-specs" class="btn-apple-large btn-apple-large-secondary">
+        <span>View Architecture</span>
+      </a>
     </div>
 
-    <div class="cute-card">
-      <div class="card-icon-bubble">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-      </div>
-      <h3>MIME &amp; Auth Verification</h3>
-      <p>Comprehensive SPF, DKIM, and DMARC alignment checks combined with Return-Path and display-name spoofing detection.</p>
-    </div>
-
-    <div class="cute-card">
-      <div class="card-icon-bubble">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      </div>
-      <h3>Live VirusTotal API v3</h3>
-      <p>Real-time reputation enrichment for URLs and SHA-256 hashes with disk caching and automated rate-limiting backoff.</p>
-    </div>
-  </section>
-
-  <!-- Direct Drop Box Section -->
-  <section class="quick-drop-wrapper" id="quick-drop-section">
-    <div class="drop-card">
-      <div class="drop-card-header">
-        <h2>Instant File Inspection</h2>
-        <p>Drop a <code>.eml</code> sample to immediately transition into full forensic analysis.</p>
+    <!-- Product Showcase Floating Canvas -->
+    <div class="product-preview-card" onclick="window.location.href='{{ url_for('workbench') }}'">
+      <div class="preview-chrome-bar">
+        <div class="window-dots">
+          <span class="dot dot-close"></span>
+          <span class="dot dot-minimize"></span>
+          <span class="dot dot-expand"></span>
+        </div>
+        <div class="window-title">workspace.detectlab.local — RFC 822 Forensic Inspection</div>
+        <div class="window-status">
+          <span class="live-beacon"></span>
+          <span>In-Memory Sandbox Active</span>
+        </div>
       </div>
 
-      <form action="{{ url_for('parse_upload') }}" method="POST" enctype="multipart/form-data">
-        <div class="cute-dropzone" onclick="document.getElementById('quickFileInput').click();">
-          <div class="dropzone-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div class="preview-inner-canvas">
+        <div class="mock-sidebar">
+          <div class="mock-item active">
+            <span class="mock-dot danger"></span>
+            <span>suspicious.eml</span>
           </div>
-          <div class="dropzone-text" id="dropFileName">Select or drag a <code>.eml</code> file here</div>
-          <div class="dropzone-hint">RFC 822 MIME format &bull; Maximum 5MB</div>
-          <input type="file" id="quickFileInput" name="eml_file" accept=".eml" style="display: none;" onchange="updateDropFileName(this)" required>
+          <div class="mock-item">
+            <span class="mock-dot success"></span>
+            <span>benign.eml</span>
+          </div>
+          <div class="mock-item">
+            <span class="mock-dot warning"></span>
+            <span>inconclusive.eml</span>
+          </div>
         </div>
 
-        <div class="drop-card-actions">
-          <label class="cute-check-label">
-            <input type="checkbox" name="enable_vt" value="1" checked>
-            <span>Enable VirusTotal v3 Reputation Enrichment</span>
-          </label>
-          <button type="submit" class="btn-hero-primary" style="padding: 0.65rem 1.4rem;">
-            <span>Run Triage</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
-        </div>
-      </form>
-    </div>
+        <div class="mock-workspace-content">
+          <div class="mock-verdict-banner">
+            <div class="mock-verdict-left">
+              <span class="mock-badge">Suspicious</span>
+              <span class="mock-score">Threat Score: 12</span>
+            </div>
+            <div class="mock-tags">
+              <span class="mini-tag">AUTH_FAIL</span>
+              <span class="mini-tag">HEADER_MISMATCH</span>
+              <span class="mini-tag">ATTACH_NOT_EXECUTED</span>
+            </div>
+          </div>
 
-    {% if history %}
-    <div class="history-card-wrap">
-      <h3>Recent Triage Activity</h3>
-      <table class="cute-table">
-        <thead>
-          <tr>
-            <th>Filename</th>
-            <th>Verdict</th>
-            <th>Threat Score</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in history %}
-          <tr>
-            <td><strong>{{ item.filename }}</strong></td>
-            <td>
-              <span class="cute-status-badge status-{{ 'danger' if item.verdict == 'Suspicious' else 'success' if item.verdict == 'Likely Benign' else 'warning' }}">
-                {{ item.verdict }}
-              </span>
-            </td>
-            <td>{{ item.score }}</td>
-            <td style="color: var(--text-muted); font-size: 0.8rem;">{{ item.created_at }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          <div class="mock-data-table">
+            <div class="mock-row header-row">
+              <span>Authentication Mechanism</span>
+              <span>Result</span>
+              <span>Verdict Assessment</span>
+            </div>
+            <div class="mock-row">
+              <span>SPF (Sender Policy)</span>
+              <span class="fail-text">fail</span>
+              <span>Sender IP 192.168.1.100 unauthorized</span>
+            </div>
+            <div class="mock-row">
+              <span>DKIM Signature</span>
+              <span class="fail-text">fail</span>
+              <span>Cryptographic key mismatch</span>
+            </div>
+            <div class="mock-row">
+              <span>DMARC Domain Alignment</span>
+              <span class="fail-text">fail</span>
+              <span>Quarantine policy enforced</span>
+            </div>
+          </div>
+
+          <div class="mock-footer-cta">
+            <span>Click to enter interactive Triage Chat &rarr;</span>
+          </div>
+        </div>
+      </div>
     </div>
-    {% endif %}
   </section>
-</div>
 
-<script>
-function updateDropFileName(input) {
-  if (input.files && input.files[0]) {
-    document.getElementById('dropFileName').innerHTML = "Ready to analyze: <strong>" + input.files[0].name + "</strong>";
-  }
-}
-</script>
+  <!-- Architectural Feature Grid -->
+  <section class="apple-features-section" id="architecture-specs">
+    <div class="section-lead">
+      <h2 class="section-title">Engineered for absolute laboratory safety.</h2>
+      <p class="section-sub">Every email analysis is subject to strict deterministic controls designed for cybersecurity operations.</p>
+    </div>
+
+    <div class="bento-grid">
+      <div class="bento-card bento-hero">
+        <div class="bento-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Zero Attachment Execution</h3>
+        <p>Attachments are calculated purely in-memory. SHA-256 digests are fingerprinted without ever decoding binary payloads to host storage or invoking system runtimes.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </div>
+        <h3>Authentication Alignment</h3>
+        <p>Parses standard <code>Authentication-Results</code> for SPF, DKIM, and DMARC alignments, plus heuristic checks for display-name and Return-Path spoofing.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3>VirusTotal API v3</h3>
+        <p>Automated reputation lookups for detected hyperlinks and attachment SHA-256 hashes with local disk caching and backoff logic.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon-wrapper">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <h3>Structured Audits</h3>
+        <p>Exports complete machine-readable JSON and formatted Markdown report dossiers with cryptographic hashes and reason codes.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Apple Minimalist Footer -->
+  <footer class="apple-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <span class="footer-brand">DetectLab Security</span> &bull; <span>Designed for isolated cybersecurity education and laboratory research.</span>
+      </div>
+      <div class="footer-right">
+        <a href="{{ url_for('workbench') }}">Launch Workspace</a>
+        <a href="https://github.com/aarushlohit/detectlab-phishing" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+</div>
 {% endblock %}

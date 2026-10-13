@@ -232,8 +232,12 @@ def register():
         password = request.form.get("password", "")
         success, msg = db.register_user(username, password)
         if success:
-            flash("Registration successful. Please sign in.", "success")
-            return redirect(url_for("login"))
+            user = db.authenticate_user(username, password)
+            if user:
+                session["user_id"] = user["id"]
+                session["username"] = user["username"]
+            flash("Welcome to DetectLab! Account created.", "success")
+            return redirect(url_for("workbench"))
         flash(msg, "error")
     return render_template("register.html")
 

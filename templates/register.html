@@ -1,28 +1,36 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="auth-wrapper">
-  <h2>Create Account</h2>
-  <p>Register local analyst credentials for audit logging</p>
-
-  <form method="POST" action="{{ url_for('register') }}">
-    <div class="form-group">
-      <label for="username">Username</label>
-      <input type="text" id="username" name="username" placeholder="Choose a username" required autocomplete="username">
+<div class="apple-auth-canvas">
+  <div class="apple-auth-card">
+    <div class="auth-card-top">
+      <div class="auth-icon-badge">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      </div>
+      <h2>Create Analyst Account</h2>
+      <p>Register to persist audit logs and triage history in DetectLab</p>
     </div>
 
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" placeholder="At least 6 characters" required autocomplete="new-password">
+    <form method="POST" action="{{ url_for('register') }}" class="apple-form">
+      <div class="apple-form-field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="analyst_handle" required autocomplete="username">
+      </div>
+
+      <div class="apple-form-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="At least 6 characters" required autocomplete="new-password">
+      </div>
+
+      <button type="submit" class="btn-apple-form-submit">
+        <span>Create Account &amp; Go to Dashboard</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+
+    <div class="auth-footer-prompt">
+      Already registered? <a href="{{ url_for('login') }}">Sign in to your account</a>
     </div>
-
-    <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
-      Register
-    </button>
-  </form>
-
-  <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
-    Already registered? <a href="{{ url_for('login') }}" style="color: var(--primary-orange); text-decoration: none; font-weight: 600;">Sign in</a>
   </div>
 </div>
 {% endblock %}

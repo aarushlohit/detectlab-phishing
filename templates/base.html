@@ -3,57 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}DetectLab Phishing Triage{% endblock %}</title>
+  <title>{% block title %}DetectLab — Intelligent Email Forensics{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
-  <header class="app-header">
-    <div class="header-left">
-      <a href="{{ url_for('index') }}" class="brand">
-        <span class="brand-badge">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </span>
-        <span class="brand-text">DetectLab <span class="brand-accent">Triage</span></span>
-      </a>
-    </div>
-
-    <div class="header-center">
-      <nav class="nav-links">
-        <a href="{{ url_for('index') }}" class="nav-item">Landing</a>
-        <a href="{{ url_for('workbench') }}" class="nav-item">Triage Chat</a>
-      </nav>
-    </div>
-
-    <div class="header-right">
-      <div class="api-telemetry">
-        <span class="telemetry-beacon"></span>
-        <span class="telemetry-label">VirusTotal v3 Live</span>
+<body class="apple-canvas">
+  <!-- Apple Translucent Frosted Glass Navigation Bar -->
+  <header class="apple-nav">
+    <div class="nav-content">
+      <div class="nav-brand-section">
+        <a href="{{ url_for('index') }}" class="apple-brand">
+          <div class="brand-shield-mark">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span class="brand-name">DetectLab <span class="brand-product">Triage</span></span>
+        </a>
       </div>
 
-      <div class="user-actions">
-        {% if session.get('user_id') %}
-          <div class="user-avatar-tag">
-            <span class="user-avatar">{{ session.get('username')[:2].upper() }}</span>
-            <span class="user-name">{{ session.get('username') }}</span>
-          </div>
-          <a href="{{ url_for('logout') }}" class="btn-cute-ghost">Sign out</a>
-        {% else %}
-          <a href="{{ url_for('login') }}" class="btn-cute-ghost">Sign in</a>
-          <a href="{{ url_for('register') }}" class="btn-cute-primary">Get Started</a>
-        {% endif %}
+      <nav class="nav-segmented-control">
+        <a href="{{ url_for('index') }}" class="segment-link {{ 'active' if request.endpoint == 'index' else '' }}">Overview</a>
+        <a href="{{ url_for('workbench') }}" class="segment-link {{ 'active' if request.endpoint == 'workbench' else '' }}">Triage Workspace</a>
+      </nav>
+
+      <div class="nav-controls">
+        <div class="vt-telemetry-badge">
+          <span class="telemetry-dot"></span>
+          <span class="telemetry-label">VirusTotal v3 Connected</span>
+        </div>
+
+        <div class="auth-group">
+          {% if session.get('user_id') %}
+            <div class="user-pill-tag">
+              <span class="user-avatar-dot">{{ session.get('username')[:2].upper() }}</span>
+              <span class="user-label-name">{{ session.get('username') }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn-apple-ghost">Sign out</a>
+          {% else %}
+            <a href="{{ url_for('login') }}" class="btn-apple-ghost">Sign in</a>
+            <a href="{{ url_for('register') }}" class="btn-apple-primary">Get Started</a>
+          {% endif %}
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="app-content">
+  <main class="apple-viewport">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="flash-container">
+        <div class="flash-messages-wrap">
           {% for category, message in messages %}
-            <div class="cute-alert cute-alert-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}">
+            <div class="apple-toast apple-toast-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}">
+              <div class="toast-dot"></div>
               <span>{{ message }}</span>
             </div>
           {% endfor %}

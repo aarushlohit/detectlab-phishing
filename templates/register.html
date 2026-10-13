@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <h2>Create Account</h2>
+  <p>Register local analyst credentials for audit logging</p>
+
+  <form method="POST" action="{{ url_for('register') }}">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" placeholder="Choose a username" required autocomplete="username">
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="At least 6 characters" required autocomplete="new-password">
+    </div>
+
+    <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+      Register
+    </button>
+  </form>
+
+  <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+    Already registered? <a href="{{ url_for('login') }}" style="color: var(--primary-orange); text-decoration: none; font-weight: 600;">Sign in</a>
+  </div>
+</div>
+{% endblock %}

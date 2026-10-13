@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="workspace-wrapper" style="margin-top: 2rem;">
+  <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+    <a href="{{ url_for('index') }}" class="btn-secondary" style="font-size: 0.85rem;">&larr; Back to Triage</a>
+    <div style="display: flex; gap: 0.75rem;">
+      <form action="{{ url_for('download_json') }}" method="POST" style="display: inline;">
+        <input type="hidden" name="report_data" value="{{ report_json }}">
+        <input type="hidden" name="filename" value="{{ filename }}">
+        <button type="submit" class="btn-secondary" style="font-size: 0.85rem;">Download JSON</button>
+      </form>
+      <form action="{{ url_for('download_md') }}" method="POST" style="display: inline;">
+        <input type="hidden" name="report_md" value="{{ report_md }}">
+        <input type="hidden" name="filename" value="{{ filename }}">
+        <button type="submit" class="btn-primary" style="font-size: 0.85rem;">Download Markdown</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="result-header">
+    <div>
+      <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Analysis Outcome</span>
+      <h2 style="font-size: 1.85rem; font-weight: 800; margin: 0.2rem 0;">{{ filename }}</h2>
+      <div style="margin-top: 0.5rem;">
+        {% for code in verdict.reason_codes %}
+          <span class="badge-code">{{ code }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div style="text-align: right;">
+      <span class="verdict-tag {% if verdict.verdict == 'Suspicious' %}verdict-suspicious{% elif verdict.verdict == 'Likely Benign' %}verdict-benign{% else %}verdict-inconclusive{% endif %}">
+        {{ verdict.verdict }}
+      </span>
+      <div style="margin-top: 0.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-muted);">
+        Threat Score: <strong style="color: var(--text-main); font-size: 1.15rem;">{{ verdict.score }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="safety-callout">
+    <strong>ATTACH_NOT_EXECUTED:</strong> Attachments are hashed purely in memory. No binaries were executed on the system.
+  </div>
+
+  <!-- Headers -->
+  <div class="card">
+    <h3>✉️ Email Headers</h3>
+    <table class="data-table">
+      <tr><td style="width: 140px; font-weight: 600;">From</td><td><code>{{ parsed.headers.from }}</code></td></tr>
+      {% if parsed.headers.reply_to %}
+      <tr><td style="font-weight: 600;">Reply-To</td><td><code>{{ parsed.headers.reply_to }}</code></td></tr>
+      {% endif %}
+      {% if parsed.headers.return_path %}
+      <tr><td style="font-weight: 600;">Return-Path</td><td><code>{{ parsed.headers.return_path }}</code></td></tr>
+      {% endif %}
+      <tr><td style="font-weight: 600;">To</td><td><code>{{ parsed.headers.to }}</code></td></tr>
+      <tr><td style="font-weight: 600;">Subject</td><td><strong>{{ parsed.headers.subject }}</strong></td></tr>
+      <tr><td style="font-weight: 600;">Date</td><td>{{ parsed.headers.date }}</td></tr>
+    </table>
+  </div>
+
+  <!-- Authentication -->
+  <div class="card">
+    <h3>🛡️ Authentication Results</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Protocol</th>
+          <th>Status</th>
+          <th>Analysis</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>SPF</strong></td>
+          <td><span class="badge-code">{{ parsed.auth.spf }}</span></td>
+          <td>{% if parsed.auth.spf == 'pass' %}Validated mail sender IP{% elif parsed.auth.spf == 'fail' %}<strong style="color: #b91c1c;">Sender not authorized</strong>{% else %}Unspecified or neutral{% endif %}</td>
+        </tr>
+        <tr>
+          <td><strong>DKIM</strong></td>
+          <td><span class="badge-code">{{ parsed.auth.dkim }}</span></td>
+          <td>{% if parsed.auth.dkim == 'pass' %}Cryptographic signature valid{% elif parsed.auth.dkim == 'fail' %}<strong style="color: #b91c1c;">Signature verification failed</strong>{% else %}Not signed or missing{% endif %}</td>
+        </tr>
+        <tr>
+          <td><strong>DMARC</strong></td>
+          <td><span class="badge-code">{{ parsed.auth.dmarc }}</span></td>
+          <td>{% if parsed.auth.dmarc == 'pass' %}Domain policy satisfied{% elif parsed.auth.dmarc == 'fail' %}<strong style="color: #b91c1c;">Policy check rejected</strong>{% else %}No policy recorded{% endif %}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Discovered URLs -->
+  <div class="card">
+    <h3>🔗 Discovered URLs ({{ parsed.urls|length }})</h3>
+    {% if parsed.urls %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>URL</th>
+          <th>Heuristic</th>
+          <th>VirusTotal Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in parsed.urls %}
+        <tr>
+          <td style="max-width: 320px; overflow-wrap: break-word;"><code>{{ u.url }}</code></td>
+          <td>
+            {% if u.suspicious %}
+              <span style="color: #b91c1c; font-weight: 600;">⚠️ Suspicious</span>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ u.reasons|join(', ') }}</div>
+            {% else %}
+              <span style="color: #15803d;">Clean</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set vt = enrichment.urls.get(u.url) if enrichment else None %}
+            {% if vt %}
+              {% if vt.status == 'malicious' %}
+                <span class="badge-code" style="color: #b91c1c; font-weight: 700;">Malicious ({{ vt.malicious }})</span>
+              {% elif vt.status == 'suspicious' %}
+                <span class="badge-code" style="color: #b45309; font-weight: 700;">Suspicious ({{ vt.suspicious }})</span>
+              {% else %}
+                <span class="badge-code">{{ vt.status }}</span>
+              {% endif %}
+            {% else %}
+              <span style="color: var(--text-muted);">Not queried</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p style="color: var(--text-muted); font-size: 0.9rem;">No URLs detected in plain text or HTML parts.</p>
+    {% endif %}
+  </div>
+
+  <!-- Attachments -->
+  <div class="card">
+    <h3>📎 Attachments ({{ parsed.attachments|length }})</h3>
+    {% if parsed.attachments %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>Size</th>
+          <th>SHA-256</th>
+          <th>VirusTotal Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for att in parsed.attachments %}
+        <tr>
+          <td><strong>{{ att.filename }}</strong></td>
+          <td>{{ att.size }} bytes</td>
+          <td><code>{{ att.sha256[:16] }}...</code></td>
+          <td>
+            {% set vt = enrichment.files.get(att.sha256) if enrichment else None %}
+            {% if vt %}
+              {% if vt.status == 'malicious' %}
+                <span class="badge-code" style="color: #b91c1c; font-weight: 700;">Malicious ({{ vt.malicious }})</span>
+              {% elif vt.status == 'suspicious' %}
+                <span class="badge-code" style="color: #b45309; font-weight: 700;">Suspicious ({{ vt.suspicious }})</span>
+              {% else %}
+                <span class="badge-code">{{ vt.status }}</span>
+              {% endif %}
+            {% else %}
+              <span style="color: var(--text-muted);">Not queried</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p style="color: var(--text-muted); font-size: 0.9rem;">No attachments found in this email.</p>
+    {% endif %}
+  </div>
+
+  <!-- Body Text Preview (Raw, strictly no HTML rendering) -->
+  <div class="card">
+    <h3>📄 Plaintext Body Excerpt</h3>
+    {% if parsed.body_text %}
+      <pre style="background: #fafafa; border: 1px solid var(--border-subtle); padding: 1rem; border-radius: var(--radius-md); font-size: 0.85rem; white-space: pre-wrap; font-family: monospace;">{{ parsed.body_text[:1000] }}</pre>
+    {% else %}
+      <p style="color: var(--text-muted); font-size: 0.9rem;">No plaintext body part available.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-container">
+  <div class="hero-pill">
+    <span>🛡️ Isolated Lab Security</span> &bull; <span>VirusTotal v3 Enriched</span>
+  </div>
+  <h1 class="hero-title">Automated Phishing Analysis <br><span>Built for SecOps & Labs</span></h1>
+  <p class="hero-subtitle">
+    Fast, safe triage of suspicious <code>.eml</code> files. Extracts email headers, parses authentication (SPF, DKIM, DMARC), computes attachment hashes in-memory, and provides explainable verdicts.
+  </p>
+
+  <div class="hero-ctas">
+    <a href="#upload-section" class="btn-primary">Start Email Triage &darr;</a>
+    <a href="https://github.com" target="_blank" class="btn-secondary">View Documentation</a>
+  </div>
+</div>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <div class="feature-icon">🔒</div>
+    <h3>Zero Execution Guarantee</h3>
+    <p>Attachments are never executed and never written to disk. Pure in-memory cryptographic SHA-256 fingerprinting.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">✉️</div>
+    <h3>MIME Header & Auth Parser</h3>
+    <p>Parses SPF, DKIM, and DMARC alignments, plus heuristic checks for display-name and Return-Path spoofing.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">⚡</div>
+    <h3>VirusTotal v3 Intelligence</h3>
+    <p>Automated reputation lookups for external links and attachment hashes with local disk caching and backoff logic.</p>
+  </div>
+</div>
+
+<div class="workspace-wrapper" id="upload-section">
+  <div class="card" style="box-shadow: var(--shadow-md);">
+    <h3 style="margin-bottom: 0.25rem;">Triage Workspace</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Upload synthetic or authorized public <code>.eml</code> files for instant inspection.</p>
+
+    <div class="safety-callout">
+      <strong>⚠️ Safety Rules Enforced:</strong> HTML bodies are never rendered in your browser and attachments are never executed.
+    </div>
+
+    <form action="{{ url_for('parse_upload') }}" method="POST" enctype="multipart/form-data">
+      <div class="upload-box" onclick="document.getElementById('file-input').click();">
+        <div class="upload-icon">📁</div>
+        <h4 style="font-size: 1.05rem; font-weight: 600; margin-bottom: 0.25rem;">Select .eml email file</h4>
+        <p style="color: var(--text-muted); font-size: 0.85rem;" id="file-name-display">Click to browse or drag file here (Max 5MB)</p>
+        <input type="file" id="file-input" name="eml_file" accept=".eml" style="display: none;" onchange="updateFileName(this);" required>
+      </div>
+
+      <div style="margin-top: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; color: var(--text-main);">
+          <input type="checkbox" name="enable_vt" value="1" checked style="accent-color: var(--primary-orange);">
+          <span>Enrich with VirusTotal v3 (URLs &amp; Hashes)</span>
+        </label>
+        <button type="submit" class="btn-primary">
+          <span>Run Analysis</span> &rarr;
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {% if history %}
+  <div class="card" style="margin-top: 2rem;">
+    <h3>Recent Triage Activity</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Verdict</th>
+          <th>Score</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in history %}
+        <tr>
+          <td><strong>{{ item.filename }}</strong></td>
+          <td>
+            <span class="badge-code" style="font-weight: 600; color: {% if item.verdict == 'Suspicious' %}#b91c1c{% elif item.verdict == 'Likely Benign' %}#15803d{% else %}#b45309{% endif %};">
+              {{ item.verdict }}
+            </span>
+          </td>
+          <td>{{ item.score }}</td>
+          <td style="color: var(--text-muted); font-size: 0.85rem;">{{ item.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function updateFileName(input) {
+  if (input.files && input.files[0]) {
+    document.getElementById('file-name-display').innerText = "Selected: " + input.files[0].name;
+  }
+}
+</script>
+{% endblock %}

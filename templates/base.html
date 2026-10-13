@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}DetectLab Phishing Triage{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="app-header">
+    <a href="{{ url_for('index') }}" class="brand">
+      <div class="brand-badge">⚡</div>
+      <span>DetectLab <span style="color: var(--primary-orange); font-weight: 500;">Triage</span></span>
+    </a>
+    <nav class="nav-links">
+      <a href="{{ url_for('index') }}" class="nav-link">Analyze</a>
+      {% if session.get('user_id') %}
+        <span class="nav-link" style="color: var(--text-main); font-weight: 600;">👤 {{ session.get('username') }}</span>
+        <a href="{{ url_for('logout') }}" class="nav-link">Sign out</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="nav-link">Sign in</a>
+        <a href="{{ url_for('register') }}" class="btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;">Sign up</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="max-width: 820px; margin: 1.5rem auto 0 auto; padding: 0 1.5rem;">
+          {% for category, message in messages %}
+            <div class="banner banner-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}">
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

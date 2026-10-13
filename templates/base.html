@@ -5,29 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}DetectLab Phishing Triage{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <header class="app-header">
-    <a href="{{ url_for('index') }}" class="brand">
-      <div class="brand-badge">⚡</div>
-      <span>DetectLab <span style="color: var(--primary-orange); font-weight: 500;">Triage</span></span>
-    </a>
-    <nav class="nav-links">
-      <a href="{{ url_for('index') }}" class="nav-link">Analyze</a>
-      {% if session.get('user_id') %}
-        <span class="nav-link" style="color: var(--text-main); font-weight: 600;">👤 {{ session.get('username') }}</span>
-        <a href="{{ url_for('logout') }}" class="nav-link">Sign out</a>
-      {% else %}
-        <a href="{{ url_for('login') }}" class="nav-link">Sign in</a>
-        <a href="{{ url_for('register') }}" class="btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;">Sign up</a>
-      {% endif %}
-    </nav>
+    <div class="header-left">
+      <a href="{{ url_for('index') }}" class="brand">
+        <div class="brand-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <span class="brand-title">DetectLab <span class="brand-sub">Security</span></span>
+      </a>
+    </div>
+
+    <div class="header-right">
+      <div class="header-status">
+        <span class="live-indicator"></span>
+        <span class="status-label">VirusTotal v3 Active</span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}" class="nav-link">Triage</a>
+        {% if session.get('user_id') %}
+          <div class="user-chip">
+            <span class="user-chip-name">{{ session.get('username') }}</span>
+          </div>
+          <a href="{{ url_for('logout') }}" class="nav-btn-secondary">Sign out</a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="nav-link">Sign in</a>
+          <a href="{{ url_for('register') }}" class="nav-btn-primary">Get Started</a>
+        {% endif %}
+      </nav>
+    </div>
   </header>
 
-  <main>
+  <main class="app-content">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div style="max-width: 820px; margin: 1.5rem auto 0 auto; padding: 0 1.5rem;">
+        <div class="flash-container">
           {% for category, message in messages %}
             <div class="banner banner-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}">
               <span>{{ message }}</span>

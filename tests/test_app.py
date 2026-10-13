@@ -18,7 +18,7 @@ def test_index_route(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"DetectLab" in response.data
-    assert b"Automated Phishing Analysis" in response.data
+    assert b"What email would you like to inspect?" in response.data
 
 
 def test_user_registration_and_login(client):

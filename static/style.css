@@ -1,3 +1,13 @@
+
+/* Viewport Container */
+.apple-viewport {
+  height: calc(100vh - 52px);
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
 :root {
   /* Apple Palette with Safety Orange Precision */
   --apple-orange: #f97316;

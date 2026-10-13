@@ -59,13 +59,16 @@ logger = logging.getLogger("detectlab.app")
 
 @app.route("/")
 @app.route("/workbench")
-def workbench():
+def index():
     user_id = session.get("user_id")
     history = db.get_user_history(user_id) if user_id else []
-    return render_template("index.html", history=history)
+    return render_template("chat.html", history=history)
 
-@app.route("/")
-def index():
+def workbench():
+    return index()
+
+@app.route("/landing")
+def landing():
     user_id = session.get("user_id")
     history = db.get_user_history(user_id) if user_id else []
     return render_template("index.html", history=history)

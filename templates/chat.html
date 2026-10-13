@@ -1,0 +1,628 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chat-layout">
+  <!-- Left Sidebar (ChatGPT-style session & history drawer) -->
+  <aside class="chat-sidebar" id="chatSidebar">
+    <div class="sidebar-header">
+      <button class="new-chat-btn" onclick="startNewTriage()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        <span>New Triage</span>
+      </button>
+      <button class="icon-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+      </button>
+    </div>
+
+    <div class="sidebar-section-title">Recent Triages</div>
+    <div class="history-list" id="historyList">
+      {% if history %}
+        {% for item in history %}
+          <div class="history-item" onclick="loadHistoryItem({{ item.id }})">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span class="history-text" title="{{ item.filename }}">{{ item.filename }}</span>
+            <span class="status-dot {{ 'dot-danger' if item.verdict == 'Suspicious' else 'dot-success' if item.verdict == 'Likely Benign' else 'dot-warning' }}"></span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-history-notice">No past analyses yet.</div>
+      {% endif %}
+    </div>
+
+    <!-- Quick Sample Loader in Sidebar -->
+    <div class="sidebar-section-title" style="margin-top: 1rem;">Lab Test Samples</div>
+    <div class="samples-list">
+      <button class="sample-chip" onclick="loadSample('suspicious.eml')">
+        <span class="sample-tag tag-threat">Threat</span>
+        <span>suspicious.eml</span>
+      </button>
+      <button class="sample-chip" onclick="loadSample('benign.eml')">
+        <span class="sample-tag tag-clean">Clean</span>
+        <span>benign.eml</span>
+      </button>
+      <button class="sample-chip" onclick="loadSample('inconclusive.eml')">
+        <span class="sample-tag tag-neutral">Neutral</span>
+        <span>inconclusive.eml</span>
+      </button>
+    </div>
+
+    <div class="sidebar-footer">
+      {% if session.get('user_id') %}
+        <div class="user-profile">
+          <div class="avatar">{{ session.get('username')[:2].upper() }}</div>
+          <div class="user-meta">
+            <div class="username">{{ session.get('username') }}</div>
+            <div class="user-role">SecOps Analyst</div>
+          </div>
+          <a href="{{ url_for('logout') }}" class="signout-icon" title="Sign out">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </a>
+        </div>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="sidebar-auth-cta">
+          <span>Sign In to Save History</span> &rarr;
+        </a>
+      {% endif %}
+    </div>
+  </aside>
+
+  <!-- Main Chat Conversation Canvas -->
+  <main class="chat-main">
+    <div class="chat-topbar">
+      <div class="topbar-left">
+        <button class="icon-toggle-btn mobile-only" onclick="toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="model-badge">
+          <span class="model-pill">DetectLab Core v3</span>
+          <span class="vt-status-pill" id="vtStatusPill">
+            <span class="pulse-indicator"></span> VirusTotal Live
+          </span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <label class="toggle-vt-label">
+          <input type="checkbox" id="vtCheckbox" checked>
+          <span>VT v3 Enrichment</span>
+        </label>
+        <button class="clear-convo-btn" onclick="startNewTriage()" title="Clear conversation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Scrollable Messages Container -->
+    <div class="chat-scroll-area" id="chatScrollArea">
+      <div class="chat-messages-container" id="chatMessages">
+        
+        <!-- Welcome Screen (Default empty state) -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-avatar">⚡</div>
+          <h2 class="welcome-title">What email would you like to inspect?</h2>
+          <p class="welcome-sub">Drop or attach any <code>.eml</code> file. Our engine performs deep MIME header analysis, SPF/DKIM verification, in-memory attachment SHA-256 fingerprinting, and VirusTotal v3 enrichment.</p>
+
+          <div class="quick-prompt-grid">
+            <div class="quick-card" onclick="loadSample('suspicious.eml')">
+              <div class="quick-card-title">🚨 Analyze suspicious PayPal lure</div>
+              <div class="quick-card-desc">Tests From spoofing, malicious links, and dangerous double extensions.</div>
+            </div>
+            <div class="quick-card" onclick="loadSample('benign.eml')">
+              <div class="quick-card-title">✅ Inspect benign company email</div>
+              <div class="quick-card-desc">Tests verified SPF/DKIM/DMARC pass alignments with clean text attachments.</div>
+            </div>
+            <div class="quick-card" onclick="loadSample('inconclusive.eml')">
+              <div class="quick-card-title">❓ Inconclusive sample</div>
+              <div class="quick-card-desc">Tests how the verdict engine behaves when verifiable headers are absent.</div>
+            </div>
+            <div class="quick-card" onclick="document.getElementById('fileUploadInput').click()">
+              <div class="quick-card-title">📎 Upload custom .eml file</div>
+              <div class="quick-card-desc">Directly upload any synthetic .eml file up to 5MB from your disk.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ChatGPT-style Fixed Bottom Input Bar -->
+    <div class="chat-input-area">
+      <div class="input-container-box" id="dropZone">
+        <!-- Selected attachment chip if file selected -->
+        <div class="attached-file-preview" id="attachedFilePreview" style="display: none;">
+          <div class="file-chip">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span id="attachedFileName">sample.eml</span>
+            <button class="remove-chip-btn" onclick="clearAttachedFile()">&times;</button>
+          </div>
+        </div>
+
+        <div class="input-row">
+          <button class="attach-btn" onclick="document.getElementById('fileUploadInput').click()" title="Attach .eml file">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          
+          <input type="file" id="fileUploadInput" accept=".eml" style="display: none;" onchange="handleFileSelected(this)">
+          
+          <textarea 
+            id="chatPromptInput" 
+            rows="1" 
+            placeholder="Ask a question about an email or drop a .eml file here to triage..." 
+            onkeydown="handleInputKeydown(event)"
+            oninput="autoResizeTextarea(this)"
+          ></textarea>
+
+          <button class="send-btn" id="sendBtn" onclick="handleSend()" title="Send">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </button>
+        </div>
+
+        <div class="input-footer-note">
+          <span>DetectLab guarantees attachments are strictly hashed in memory and never executed.</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Hidden forms for downloading reports -->
+<form id="downloadJsonForm" action="{{ url_for('download_json') }}" method="POST" style="display: none;">
+  <input type="hidden" name="report_data" id="jsonReportData">
+  <input type="hidden" name="filename" id="jsonFilename">
+</form>
+
+<form id="downloadMdForm" action="{{ url_for('download_md') }}" method="POST" style="display: none;">
+  <input type="hidden" name="report_md" id="mdReportData">
+  <input type="hidden" name="filename" id="mdFilename">
+</form>
+
+<script>
+let currentFile = null;
+let currentReports = {};
+
+function toggleSidebar() {
+  document.getElementById('chatSidebar').classList.toggle('collapsed');
+}
+
+function autoResizeTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+}
+
+function handleInputKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+}
+
+function handleFileSelected(input) {
+  if (input.files && input.files[0]) {
+    setFile(input.files[0]);
+  }
+}
+
+function setFile(file) {
+  currentFile = file;
+  document.getElementById('attachedFileName').innerText = file.name;
+  document.getElementById('attachedFilePreview').style.display = 'block';
+  document.getElementById('chatPromptInput').focus();
+}
+
+function clearAttachedFile() {
+  currentFile = null;
+  document.getElementById('fileUploadInput').value = '';
+  document.getElementById('attachedFilePreview').style.display = 'none';
+}
+
+function startNewTriage() {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML = `
+    <div class="welcome-screen" id="welcomeScreen">
+      <div class="welcome-avatar">⚡</div>
+      <h2 class="welcome-title">What email would you like to inspect?</h2>
+      <p class="welcome-sub">Drop or attach any <code>.eml</code> file. Our engine performs deep MIME header analysis, SPF/DKIM verification, in-memory attachment SHA-256 fingerprinting, and VirusTotal v3 enrichment.</p>
+
+      <div class="quick-prompt-grid">
+        <div class="quick-card" onclick="loadSample('suspicious.eml')">
+          <div class="quick-card-title">🚨 Analyze suspicious PayPal lure</div>
+          <div class="quick-card-desc">Tests From spoofing, malicious links, and dangerous double extensions.</div>
+        </div>
+        <div class="quick-card" onclick="loadSample('benign.eml')">
+          <div class="quick-card-title">✅ Inspect benign company email</div>
+          <div class="quick-card-desc">Tests verified SPF/DKIM/DMARC pass alignments with clean text attachments.</div>
+        </div>
+        <div class="quick-card" onclick="loadSample('inconclusive.eml')">
+          <div class="quick-card-title">❓ Inconclusive sample</div>
+          <div class="quick-card-desc">Tests how the verdict engine behaves when verifiable headers are absent.</div>
+        </div>
+        <div class="quick-card" onclick="document.getElementById('fileUploadInput').click()">
+          <div class="quick-card-title">📎 Upload custom .eml file</div>
+          <div class="quick-card-desc">Directly upload any synthetic .eml file up to 5MB from your disk.</div>
+        </div>
+      </div>
+    </div>
+  `;
+  clearAttachedFile();
+  document.getElementById('chatPromptInput').value = '';
+}
+
+function scrollToBottom() {
+  const scrollArea = document.getElementById('chatScrollArea');
+  scrollArea.scrollTop = scrollArea.scrollHeight;
+}
+
+// Drag & Drop onto input area
+const dropZone = document.getElementById('dropZone');
+['dragenter', 'dragover'].forEach(name => {
+  dropZone.addEventListener(name, (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-active');
+  });
+});
+['dragleave', 'drop'].forEach(name => {
+  dropZone.addEventListener(name, (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-active');
+  });
+});
+dropZone.addEventListener('drop', (e) => {
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    const file = e.dataTransfer.files[0];
+    if (file.name.toLowerCase().endsWith('.eml')) {
+      setFile(file);
+    } else {
+      alert("Only .eml files are accepted for triage.");
+    }
+  }
+});
+
+function appendUserMessage(text, fileName = null) {
+  const welcome = document.getElementById('welcomeScreen');
+  if (welcome) welcome.remove();
+
+  const container = document.getElementById('chatMessages');
+  const userMsg = document.createElement('div');
+  userMsg.className = 'message-row user-row';
+
+  let fileChipHtml = '';
+  if (fileName) {
+    fileChipHtml = `
+      <div class="msg-file-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>${fileName}</span>
+      </div>
+    `;
+  }
+
+  userMsg.innerHTML = `
+    <div class="message-bubble user-bubble">
+      ${fileChipHtml}
+      ${text ? `<div class="msg-text">${escapeHtml(text)}</div>` : ''}
+    </div>
+  `;
+  container.appendChild(userMsg);
+  scrollToBottom();
+}
+
+function appendThinkingMessage() {
+  const container = document.getElementById('chatMessages');
+  const thinking = document.createElement('div');
+  thinking.className = 'message-row assistant-row';
+  thinking.id = 'thinkingMsg';
+  thinking.innerHTML = `
+    <div class="bot-avatar">⚡</div>
+    <div class="message-bubble assistant-bubble thinking-bubble">
+      <div class="typing-indicator">
+        <span></span><span></span><span></span>
+      </div>
+      <span class="thinking-text">Dissecting headers, extracting URLs &amp; enriching via VirusTotal...</span>
+    </div>
+  `;
+  container.appendChild(thinking);
+  scrollToBottom();
+}
+
+function removeThinkingMessage() {
+  const thinking = document.getElementById('thinkingMsg');
+  if (thinking) thinking.remove();
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>"']/g, function(m) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+  });
+}
+
+function renderAssistantTriageResponse(data) {
+  removeThinkingMessage();
+  const container = document.getElementById('chatMessages');
+  const assistantMsg = document.createElement('div');
+  assistantMsg.className = 'message-row assistant-row';
+
+  const v = data.verdict;
+  const p = data.parsed;
+  const h = p.headers;
+  const a = p.auth;
+  const urls = p.urls || [];
+  const atts = p.attachments || [];
+  const enr = data.enrichment || {};
+
+  let badgeClass = 'verdict-inconclusive';
+  if (v.verdict === 'Suspicious') badgeClass = 'verdict-suspicious';
+  if (v.verdict === 'Likely Benign') badgeClass = 'verdict-benign';
+
+  // Reason code tags
+  const reasonTags = (v.reason_codes || []).map(c => `<span class="badge-code">${c}</span>`).join(' ');
+
+  // URL table rows
+  let urlRows = '';
+  if (urls.length > 0) {
+    urlRows = urls.map(u => {
+      const isSusp = u.suspicious ? `<span style="color:#b91c1c;font-weight:600;">⚠️ Suspicious</span>` : `<span style="color:#15803d;">Clean</span>`;
+      const vt = (enr.urls && enr.urls[u.url]) ? enr.urls[u.url] : null;
+      let vtTxt = '<span style="color:#71717a;">Not queried</span>';
+      if (vt) {
+        if (vt.status === 'malicious') vtTxt = `<strong style="color:#b91c1c;">Malicious (${vt.malicious})</strong>`;
+        else if (vt.status === 'suspicious') vtTxt = `<strong style="color:#b45309;">Suspicious (${vt.suspicious})</strong>`;
+        else vtTxt = `<span class="badge-code">${vt.status}</span>`;
+      }
+      return `<tr><td><code>${escapeHtml(u.url)}</code></td><td>${isSusp}</td><td>${vtTxt}</td></tr>`;
+    }).join('');
+  }
+
+  // Attachment rows
+  let attRows = '';
+  if (atts.length > 0) {
+    attRows = atts.map(att => {
+      const vt = (enr.files && enr.files[att.sha256]) ? enr.files[att.sha256] : null;
+      let vtTxt = '<span style="color:#71717a;">Not queried</span>';
+      if (vt) {
+        if (vt.status === 'malicious') vtTxt = `<strong style="color:#b91c1c;">Malicious (${vt.malicious})</strong>`;
+        else if (vt.status === 'suspicious') vtTxt = `<strong style="color:#b45309;">Suspicious (${vt.suspicious})</strong>`;
+        else vtTxt = `<span class="badge-code">${vt.status}</span>`;
+      }
+      return `<tr><td><strong>${escapeHtml(att.filename)}</strong></td><td>${att.size} B</td><td><code>${att.sha256.substring(0, 14)}...</code></td><td>${vtTxt}</td></tr>`;
+    }).join('');
+  }
+
+  // Save report texts
+  const jsonReport = data.report_json;
+  const mdReport = data.report_md;
+  const fname = data.filename;
+
+  assistantMsg.innerHTML = `
+    <div class="bot-avatar">⚡</div>
+    <div class="message-bubble assistant-bubble">
+      
+      <!-- Verdict Top Bar -->
+      <div class="chat-verdict-banner ${badgeClass}-banner">
+        <div class="verdict-banner-left">
+          <span class="verdict-tag ${badgeClass}">${v.verdict}</span>
+          <span class="threat-score">Score: <strong>${v.score}</strong></span>
+        </div>
+        <div class="verdict-banner-actions">
+          <button class="btn-micro" onclick="downloadJsonReport('${escapeHtml(fname)}')">Download JSON</button>
+          <button class="btn-micro btn-micro-primary" onclick="downloadMdReport('${escapeHtml(fname)}')">Download Markdown</button>
+        </div>
+      </div>
+
+      <div class="reason-codes-container">
+        ${reasonTags}
+      </div>
+
+      <div class="safety-alert">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span><strong>ATTACH_NOT_EXECUTED:</strong> Attachments are hashed purely in memory. No binary was executed.</span>
+      </div>
+
+      <!-- Headers Accordion / Card -->
+      <div class="chat-details-card">
+        <div class="card-title">✉️ Email Headers</div>
+        <table class="chat-table">
+          <tr><td class="tbl-lbl">From:</td><td><code>${escapeHtml(h.from || '(none)')}</code></td></tr>
+          ${h.reply_to ? `<tr><td class="tbl-lbl">Reply-To:</td><td><code>${escapeHtml(h.reply_to)}</code></td></tr>` : ''}
+          ${h.return_path ? `<tr><td class="tbl-lbl">Return-Path:</td><td><code>${escapeHtml(h.return_path)}</code></td></tr>` : ''}
+          <tr><td class="tbl-lbl">To:</td><td><code>${escapeHtml(h.to || '(none)')}</code></td></tr>
+          <tr><td class="tbl-lbl">Subject:</td><td><strong>${escapeHtml(h.subject || '(none)')}</strong></td></tr>
+          <tr><td class="tbl-lbl">Date:</td><td>${escapeHtml(h.date || '(none)')}</td></tr>
+        </table>
+      </div>
+
+      <!-- Auth Table -->
+      <div class="chat-details-card">
+        <div class="card-title">🛡️ Authentication Protocols</div>
+        <table class="chat-table">
+          <thead>
+            <tr><th>Protocol</th><th>Status</th><th>Verification</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>SPF</strong></td><td><span class="badge-code">${a.spf}</span></td><td>${a.spf === 'pass' ? 'Sender IP Authorized' : a.spf === 'fail' ? '<span style="color:#b91c1c;font-weight:600;">Failed</span>' : 'Neutral/Unknown'}</td></tr>
+            <tr><td><strong>DKIM</strong></td><td><span class="badge-code">${a.dkim}</span></td><td>${a.dkim === 'pass' ? 'Cryptographic Signature Valid' : a.dkim === 'fail' ? '<span style="color:#b91c1c;font-weight:600;">Failed</span>' : 'Not Signed'}</td></tr>
+            <tr><td><strong>DMARC</strong></td><td><span class="badge-code">${a.dmarc}</span></td><td>${a.dmarc === 'pass' ? 'Domain Policy Passed' : a.dmarc === 'fail' ? '<span style="color:#b91c1c;font-weight:600;">Failed</span>' : 'No Policy'}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- URLs Table -->
+      ${urls.length > 0 ? `
+      <div class="chat-details-card">
+        <div class="card-title">🔗 Discovered URLs (${urls.length})</div>
+        <table class="chat-table">
+          <thead><tr><th>URL</th><th>Heuristic</th><th>VirusTotal v3</th></tr></thead>
+          <tbody>${urlRows}</tbody>
+        </table>
+      </div>
+      ` : ''}
+
+      <!-- Attachments Table -->
+      ${atts.length > 0 ? `
+      <div class="chat-details-card">
+        <div class="card-title">📎 Attachments (${atts.length})</div>
+        <table class="chat-table">
+          <thead><tr><th>File</th><th>Size</th><th>SHA-256</th><th>VirusTotal v3</th></tr></thead>
+          <tbody>${attRows}</tbody>
+        </table>
+      </div>
+      ` : ''}
+
+      <!-- Plain Text Preview -->
+      ${p.body_text ? `
+      <div class="chat-details-card">
+        <div class="card-title">📄 Plaintext Body (Non-Rendered)</div>
+        <pre class="body-preview">${escapeHtml(p.body_text.substring(0, 500))}</pre>
+      </div>
+      ` : ''}
+
+    </div>
+  `;
+  container.appendChild(assistantMsg);
+
+  // Store report in global map for downloading
+  currentReports[fname] = { json: jsonReport, md: mdReport };
+  scrollToBottom();
+
+  // Update history item in sidebar if not already present
+  updateSidebarHistory(fname, v.verdict, data.history_id);
+}
+
+function updateSidebarHistory(filename, verdict, id) {
+  const list = document.getElementById('historyList');
+  const empty = list.querySelector('.empty-history-notice');
+  if (empty) empty.remove();
+
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  const dotColor = verdict === 'Suspicious' ? 'dot-danger' : verdict === 'Likely Benign' ? 'dot-success' : 'dot-warning';
+  item.innerHTML = `
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span class="history-text" title="${filename}">${filename}</span>
+    <span class="status-dot ${dotColor}"></span>
+  `;
+  if (id) {
+    item.onclick = () => loadHistoryItem(id);
+  }
+  list.prepend(item);
+}
+
+function downloadJsonReport(filename) {
+  const rep = currentReports[filename];
+  if (!rep) return;
+  document.getElementById('jsonReportData').value = rep.json;
+  document.getElementById('jsonFilename').value = filename;
+  document.getElementById('downloadJsonForm').submit();
+}
+
+function downloadMdReport(filename) {
+  const rep = currentReports[filename];
+  if (!rep) return;
+  document.getElementById('mdReportData').value = rep.md;
+  document.getElementById('mdFilename').value = filename;
+  document.getElementById('downloadMdForm').submit();
+}
+
+async function handleSend() {
+  const textInput = document.getElementById('chatPromptInput');
+  const text = textInput.value.trim();
+  const fileToUpload = currentFile;
+
+  if (!fileToUpload && !text) {
+    return;
+  }
+
+  // If only asking a question without file
+  if (!fileToUpload && text) {
+    appendUserMessage(text);
+    textInput.value = '';
+    textInput.style.height = 'auto';
+    appendThinkingMessage();
+
+    setTimeout(() => {
+      removeThinkingMessage();
+      const container = document.getElementById('chatMessages');
+      const botMsg = document.createElement('div');
+      botMsg.className = 'message-row assistant-row';
+      botMsg.innerHTML = `
+        <div class="bot-avatar">⚡</div>
+        <div class="message-bubble assistant-bubble">
+          <p>Please attach a <code>.eml</code> email sample (drag &amp; drop or click the paperclip icon) to perform full evidence analysis.</p>
+          <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">You can also click any of the <strong>Lab Test Samples</strong> in the sidebar to run an immediate demo.</p>
+        </div>
+      `;
+      container.appendChild(botMsg);
+      scrollToBottom();
+    }, 600);
+    return;
+  }
+
+  // Triage file upload
+  const fileName = fileToUpload.name;
+  appendUserMessage(text || `Triage and analyze: ${fileName}`, fileName);
+  clearAttachedFile();
+  textInput.value = '';
+  textInput.style.height = 'auto';
+
+  appendThinkingMessage();
+
+  const formData = new FormData();
+  formData.append('eml_file', fileToUpload);
+  formData.append('enable_vt', document.getElementById('vtCheckbox').checked ? '1' : '0');
+
+  try {
+    const res = await fetch('/api/triage', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      renderAssistantTriageResponse(data);
+    } else {
+      removeThinkingMessage();
+      const container = document.getElementById('chatMessages');
+      const errRow = document.createElement('div');
+      errRow.className = 'message-row assistant-row';
+      errRow.innerHTML = `
+        <div class="bot-avatar">⚡</div>
+        <div class="message-bubble assistant-bubble" style="border-left: 3px solid #b91c1c;">
+          <strong>Analysis Failed:</strong> ${escapeHtml(data.error || 'Failed to parse email.')}
+        </div>
+      `;
+      container.appendChild(errRow);
+      scrollToBottom();
+    }
+  } catch (err) {
+    removeThinkingMessage();
+    alert("Connection error occurred while triaging.");
+  }
+}
+
+async function loadSample(sampleName) {
+  try {
+    const res = await fetch(`/samples/${sampleName}`);
+    const blob = await res.blob();
+    const file = new File([blob], sampleName, { type: 'message/rfc822' });
+    setFile(file);
+    handleSend();
+  } catch (err) {
+    alert("Failed to load sample: " + sampleName);
+  }
+}
+
+async function loadHistoryItem(id) {
+  appendThinkingMessage();
+  try {
+    const res = await fetch(`/api/history/${id}`);
+    const data = await res.json();
+    if (res.ok && data.success) {
+      appendUserMessage(`Reviewing archived triage #${id}`, data.filename);
+      renderAssistantTriageResponse(data);
+    } else {
+      removeThinkingMessage();
+      alert("Failed to retrieve archived triage.");
+    }
+  } catch (e) {
+    removeThinkingMessage();
+  }
+}
+</script>
+{% endblock %}

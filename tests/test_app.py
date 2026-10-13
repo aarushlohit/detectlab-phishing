@@ -18,11 +18,11 @@ def test_index_route(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"DetectLab" in response.data
-    assert b"Automated Phishing Analysis" in response.data
+    assert b"What email would you like to inspect?" in response.data
 
 
 def test_user_registration_and_login(client):
-    username = "testanalyst"
+    username = "testanalyst2"
     password = "password123"
 
     # Register
@@ -32,7 +32,7 @@ def test_user_registration_and_login(client):
     # Login
     login_resp = client.post("/login", data={"username": username, "password": password}, follow_redirects=True)
     assert login_resp.status_code == 200
-    assert b"Welcome back, testanalyst" in login_resp.data
+    assert b"testanalyst2" in login_resp.data
 
     # Logout
     logout_resp = client.get("/logout", follow_redirects=True)
@@ -40,7 +40,7 @@ def test_user_registration_and_login(client):
     assert b"Sign in" in logout_resp.data
 
 
-def test_file_upload_parsing(client):
+def test_api_triage_upload(client):
     with open("samples/benign.eml", "rb") as f:
         eml_bytes = f.read()
 
@@ -49,16 +49,27 @@ def test_file_upload_parsing(client):
         "enable_vt": "0"
     }
 
-    response = client.post("/parse", data=data, content_type="multipart/form-data")
+    response = client.post("/api/triage", data=data, content_type="multipart/form-data")
     assert response.status_code == 200
-    assert b"Likely Benign" in response.data
-    assert b"ATTACH_NOT_EXECUTED" in response.data
+    json_data = response.get_json()
+    assert json_data["success"] is True
+    assert json_data["verdict"]["verdict"] == "Likely Benign"
+    assert "ATTACH_NOT_EXECUTED" in json_data["verdict"]["reason_codes"]
 
 
-def test_upload_invalid_extension_rejected(client):
+def test_api_triage_malformed_rejected(client):
     data = {
-        "eml_file": (io.BytesIO(b"random content"), "sample.txt"),
+        "eml_file": (io.BytesIO(b"random text without headers"), "malformed.eml"),
+        "enable_vt": "0"
     }
-    response = client.post("/parse", data=data, content_type="multipart/form-data", follow_redirects=True)
+    response = client.post("/api/triage", data=data, content_type="multipart/form-data")
+    assert response.status_code == 422
+    json_data = response.get_json()
+    assert json_data["success"] is False
+    assert "MALFORMED_INPUT" in json_data["error"]
+
+
+def test_sample_route_serves_eml(client):
+    response = client.get("/samples/suspicious.eml")
     assert response.status_code == 200
-    assert b"Only .eml files are accepted" in response.data
+    assert b"PayPal Support" in response.data

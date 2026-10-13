@@ -58,10 +58,17 @@ logger = logging.getLogger("detectlab.app")
 
 
 @app.route("/")
+@app.route("/workbench")
+def workbench():
+    user_id = session.get("user_id")
+    history = db.get_user_history(user_id) if user_id else []
+    return render_template("index.html", history=history)
+
+@app.route("/")
 def index():
     user_id = session.get("user_id")
     history = db.get_user_history(user_id) if user_id else []
-    return render_template("chat.html", history=history)
+    return render_template("index.html", history=history)
 
 
 @app.route("/samples/<filename>")
@@ -262,9 +269,6 @@ def download_md():
     )
 
 
-if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=False)
-
 @app.route("/parse", methods=["POST"])
 def parse_upload():
     """Form upload compatibility route."""
@@ -304,3 +308,6 @@ def parse_upload():
         report_json=report_json_str,
         report_md=report_md_str,
     )
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000, debug=False)
+

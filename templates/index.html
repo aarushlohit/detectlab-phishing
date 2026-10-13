@@ -1,103 +1,127 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="hero-container">
-  <div class="hero-pill">
-    <span>🛡️ Isolated Lab Security</span> &bull; <span>VirusTotal v3 Enriched</span>
-  </div>
-  <h1 class="hero-title">Automated Phishing Analysis <br><span>Built for SecOps & Labs</span></h1>
-  <p class="hero-subtitle">
-    Fast, safe triage of suspicious <code>.eml</code> files. Extracts email headers, parses authentication (SPF, DKIM, DMARC), computes attachment hashes in-memory, and provides explainable verdicts.
-  </p>
-
-  <div class="hero-ctas">
-    <a href="#upload-section" class="btn-primary">Start Email Triage &darr;</a>
-    <a href="https://github.com" target="_blank" class="btn-secondary">View Documentation</a>
-  </div>
-</div>
-
-<div class="feature-grid">
-  <div class="feature-card">
-    <div class="feature-icon">🔒</div>
-    <h3>Zero Execution Guarantee</h3>
-    <p>Attachments are never executed and never written to disk. Pure in-memory cryptographic SHA-256 fingerprinting.</p>
-  </div>
-  <div class="feature-card">
-    <div class="feature-icon">✉️</div>
-    <h3>MIME Header & Auth Parser</h3>
-    <p>Parses SPF, DKIM, and DMARC alignments, plus heuristic checks for display-name and Return-Path spoofing.</p>
-  </div>
-  <div class="feature-card">
-    <div class="feature-icon">⚡</div>
-    <h3>VirusTotal v3 Intelligence</h3>
-    <p>Automated reputation lookups for external links and attachment hashes with local disk caching and backoff logic.</p>
-  </div>
-</div>
-
-<div class="workspace-wrapper" id="upload-section">
-  <div class="card" style="box-shadow: var(--shadow-md);">
-    <h3 style="margin-bottom: 0.25rem;">Triage Workspace</h3>
-    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Upload synthetic or authorized public <code>.eml</code> files for instant inspection.</p>
-
-    <div class="safety-callout">
-      <strong>⚠️ Safety Rules Enforced:</strong> HTML bodies are never rendered in your browser and attachments are never executed.
+<div class="landing-scroll-view">
+  <!-- Hero Section -->
+  <section class="landing-hero">
+    <div class="cute-tag">
+      <span class="cute-tag-dot"></span>
+      <span>SecOps Email Forensics</span>
     </div>
 
-    <form action="{{ url_for('parse_upload') }}" method="POST" enctype="multipart/form-data">
-      <div class="upload-box" onclick="document.getElementById('file-input').click();">
-        <div class="upload-icon">📁</div>
-        <h4 style="font-size: 1.05rem; font-weight: 600; margin-bottom: 0.25rem;">Select .eml email file</h4>
-        <p style="color: var(--text-muted); font-size: 0.85rem;" id="file-name-display">Click to browse or drag file here (Max 5MB)</p>
-        <input type="file" id="file-input" name="eml_file" accept=".eml" style="display: none;" onchange="updateFileName(this);" required>
+    <h1 class="hero-headline">
+      Automated Phishing Analysis <br>
+      <span class="headline-gradient">Safe, Automated &amp; Explainable</span>
+    </h1>
+
+    <p class="hero-subtext">
+      Inspect synthetic and authorized <code>.eml</code> samples without code execution or HTML rendering risks.
+      Powered by header verification, in-memory SHA-256 fingerprinting, and live VirusTotal v3 reputation intelligence.
+    </p>
+
+    <div class="hero-action-buttons">
+      <a href="{{ url_for('workbench') }}" class="btn-hero-primary">
+        <span>Launch Triage Chat</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <a href="#quick-drop-section" class="btn-hero-secondary">Quick File Drop</a>
+    </div>
+  </section>
+
+  <!-- Feature Grid -->
+  <section class="landing-cards-section">
+    <div class="cute-card">
+      <div class="card-icon-bubble">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3>Zero-Execution Sandbox</h3>
+      <p>Attachments are calculated strictly in-memory. Binary payloads are never unpacked, executed, or written to physical disks.</p>
+    </div>
+
+    <div class="cute-card">
+      <div class="card-icon-bubble">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </div>
+      <h3>MIME &amp; Auth Verification</h3>
+      <p>Comprehensive SPF, DKIM, and DMARC alignment checks combined with Return-Path and display-name spoofing detection.</p>
+    </div>
+
+    <div class="cute-card">
+      <div class="card-icon-bubble">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <h3>Live VirusTotal API v3</h3>
+      <p>Real-time reputation enrichment for URLs and SHA-256 hashes with disk caching and automated rate-limiting backoff.</p>
+    </div>
+  </section>
+
+  <!-- Direct Drop Box Section -->
+  <section class="quick-drop-wrapper" id="quick-drop-section">
+    <div class="drop-card">
+      <div class="drop-card-header">
+        <h2>Instant File Inspection</h2>
+        <p>Drop a <code>.eml</code> sample to immediately transition into full forensic analysis.</p>
       </div>
 
-      <div style="margin-top: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
-        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; color: var(--text-main);">
-          <input type="checkbox" name="enable_vt" value="1" checked style="accent-color: var(--primary-orange);">
-          <span>Enrich with VirusTotal v3 (URLs &amp; Hashes)</span>
-        </label>
-        <button type="submit" class="btn-primary">
-          <span>Run Analysis</span> &rarr;
-        </button>
-      </div>
-    </form>
-  </div>
+      <form action="{{ url_for('parse_upload') }}" method="POST" enctype="multipart/form-data">
+        <div class="cute-dropzone" onclick="document.getElementById('quickFileInput').click();">
+          <div class="dropzone-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="dropzone-text" id="dropFileName">Select or drag a <code>.eml</code> file here</div>
+          <div class="dropzone-hint">RFC 822 MIME format &bull; Maximum 5MB</div>
+          <input type="file" id="quickFileInput" name="eml_file" accept=".eml" style="display: none;" onchange="updateDropFileName(this)" required>
+        </div>
 
-  {% if history %}
-  <div class="card" style="margin-top: 2rem;">
-    <h3>Recent Triage Activity</h3>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>File</th>
-          <th>Verdict</th>
-          <th>Score</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in history %}
-        <tr>
-          <td><strong>{{ item.filename }}</strong></td>
-          <td>
-            <span class="badge-code" style="font-weight: 600; color: {% if item.verdict == 'Suspicious' %}#b91c1c{% elif item.verdict == 'Likely Benign' %}#15803d{% else %}#b45309{% endif %};">
-              {{ item.verdict }}
-            </span>
-          </td>
-          <td>{{ item.score }}</td>
-          <td style="color: var(--text-muted); font-size: 0.85rem;">{{ item.created_at }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
+        <div class="drop-card-actions">
+          <label class="cute-check-label">
+            <input type="checkbox" name="enable_vt" value="1" checked>
+            <span>Enable VirusTotal v3 Reputation Enrichment</span>
+          </label>
+          <button type="submit" class="btn-hero-primary" style="padding: 0.65rem 1.4rem;">
+            <span>Run Triage</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    {% if history %}
+    <div class="history-card-wrap">
+      <h3>Recent Triage Activity</h3>
+      <table class="cute-table">
+        <thead>
+          <tr>
+            <th>Filename</th>
+            <th>Verdict</th>
+            <th>Threat Score</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in history %}
+          <tr>
+            <td><strong>{{ item.filename }}</strong></td>
+            <td>
+              <span class="cute-status-badge status-{{ 'danger' if item.verdict == 'Suspicious' else 'success' if item.verdict == 'Likely Benign' else 'warning' }}">
+                {{ item.verdict }}
+              </span>
+            </td>
+            <td>{{ item.score }}</td>
+            <td style="color: var(--text-muted); font-size: 0.8rem;">{{ item.created_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </section>
 </div>
 
 <script>
-function updateFileName(input) {
+function updateDropFileName(input) {
   if (input.files && input.files[0]) {
-    document.getElementById('file-name-display').innerText = "Selected: " + input.files[0].name;
+    document.getElementById('dropFileName').innerHTML = "Ready to analyze: <strong>" + input.files[0].name + "</strong>";
   }
 }
 </script>

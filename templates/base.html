@@ -7,37 +7,44 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <header class="app-header">
     <div class="header-left">
       <a href="{{ url_for('index') }}" class="brand">
-        <span class="brand-mark"></span>
+        <span class="brand-badge">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </span>
         <span class="brand-text">DetectLab <span class="brand-accent">Triage</span></span>
       </a>
-      <span class="header-divider"></span>
-      <span class="header-breadcrumb">Security Operations</span>
+    </div>
+
+    <div class="header-center">
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}" class="nav-item">Landing</a>
+        <a href="{{ url_for('workbench') }}" class="nav-item">Triage Chat</a>
+      </nav>
     </div>
 
     <div class="header-right">
       <div class="api-telemetry">
         <span class="telemetry-beacon"></span>
-        <span class="telemetry-label">VirusTotal API v3 Active</span>
+        <span class="telemetry-label">VirusTotal v3 Live</span>
       </div>
 
-      <nav class="nav-links">
-        <a href="{{ url_for('index') }}" class="nav-link active">Workbench</a>
+      <div class="user-actions">
         {% if session.get('user_id') %}
-          <div class="analyst-badge">
-            <span class="analyst-name">{{ session.get('username') }}</span>
+          <div class="user-avatar-tag">
+            <span class="user-avatar">{{ session.get('username')[:2].upper() }}</span>
+            <span class="user-name">{{ session.get('username') }}</span>
           </div>
-          <a href="{{ url_for('logout') }}" class="btn-subtle">Sign out</a>
+          <a href="{{ url_for('logout') }}" class="btn-cute-ghost">Sign out</a>
         {% else %}
-          <a href="{{ url_for('login') }}" class="nav-link">Sign in</a>
-          <a href="{{ url_for('register') }}" class="btn-solid">Create Account</a>
+          <a href="{{ url_for('login') }}" class="btn-cute-ghost">Sign in</a>
+          <a href="{{ url_for('register') }}" class="btn-cute-primary">Get Started</a>
         {% endif %}
-      </nav>
+      </div>
     </div>
   </header>
 
@@ -46,7 +53,7 @@
       {% if messages %}
         <div class="flash-container">
           {% for category, message in messages %}
-            <div class="notice notice-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}">
+            <div class="cute-alert cute-alert-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}">
               <span>{{ message }}</span>
             </div>
           {% endfor %}

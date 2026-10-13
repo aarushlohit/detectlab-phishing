@@ -2,143 +2,145 @@
 
 {% block content %}
 <div class="workbench-layout">
-  <!-- Left Navigation & History Panel -->
+  <!-- Left Navigation & History Drawer -->
   <aside class="workbench-sidebar" id="chatSidebar">
     <div class="sidebar-top">
-      <button class="btn-new-analysis" onclick="startNewTriage()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span>New Analysis</span>
+      <button class="btn-sidebar-action" onclick="startNewTriage()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>New Triage Chat</span>
       </button>
-      <button class="btn-icon" onclick="toggleSidebar()" title="Toggle Sidebar">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18"/></svg>
+      <button class="btn-circle-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 3v18"/></svg>
       </button>
     </div>
 
-    <div class="sidebar-block-title">Session History</div>
+    <div class="sidebar-section-heading">Triage Sessions</div>
     <div class="history-list" id="historyList">
       {% if history %}
         {% for item in history %}
-          <div class="history-entry" onclick="loadHistoryItem({{ item.id }})">
-            <svg class="entry-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <span class="entry-name" title="{{ item.filename }}">{{ item.filename }}</span>
-            <span class="entry-status status-{{ 'danger' if item.verdict == 'Suspicious' else 'success' if item.verdict == 'Likely Benign' else 'warning' }}"></span>
+          <div class="history-bubble" onclick="loadHistoryItem({{ item.id }})">
+            <svg class="bubble-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span class="bubble-title" title="{{ item.filename }}">{{ item.filename }}</span>
+            <span class="bubble-indicator indicator-{{ 'danger' if item.verdict == 'Suspicious' else 'success' if item.verdict == 'Likely Benign' else 'warning' }}"></span>
           </div>
         {% endfor %}
       {% else %}
-        <div class="sidebar-empty-state">No prior triage records.</div>
+        <div class="sidebar-empty">No triage records found.</div>
       {% endif %}
     </div>
 
     <!-- Quick Lab Test Samples -->
-    <div class="sidebar-block-title">Laboratory Samples</div>
-    <div class="samples-container">
-      <button class="sample-card" onclick="loadSample('suspicious.eml')">
-        <div class="sample-header">
-          <span class="sample-title">suspicious.eml</span>
-          <span class="sample-indicator indicator-danger">Malicious</span>
+    <div class="sidebar-section-heading">Laboratory Samples</div>
+    <div class="samples-stack">
+      <button class="sample-pill-card" onclick="loadSample('suspicious.eml')">
+        <div class="sample-pill-top">
+          <span class="sample-name">suspicious.eml</span>
+          <span class="tag-status tag-danger">Malicious</span>
         </div>
-        <div class="sample-desc">Spoofed headers, phishing URL &amp; dual-extension payload</div>
+        <div class="sample-caption">Spoofed PayPal headers, phishing URLs &amp; double extensions</div>
       </button>
 
-      <button class="sample-card" onclick="loadSample('benign.eml')">
-        <div class="sample-header">
-          <span class="sample-title">benign.eml</span>
-          <span class="sample-indicator indicator-success">Clean</span>
+      <button class="sample-pill-card" onclick="loadSample('benign.eml')">
+        <div class="sample-pill-top">
+          <span class="sample-name">benign.eml</span>
+          <span class="tag-status tag-success">Clean</span>
         </div>
-        <div class="sample-desc">Aligned SPF/DKIM/DMARC with plain text attachment</div>
+        <div class="sample-caption">Passing SPF &amp; DKIM signatures with clean attachment</div>
       </button>
 
-      <button class="sample-card" onclick="loadSample('inconclusive.eml')">
-        <div class="sample-header">
-          <span class="sample-title">inconclusive.eml</span>
-          <span class="sample-indicator indicator-neutral">Neutral</span>
+      <button class="sample-pill-card" onclick="loadSample('inconclusive.eml')">
+        <div class="sample-pill-top">
+          <span class="sample-name">inconclusive.eml</span>
+          <span class="tag-status tag-warning">Inconclusive</span>
         </div>
-        <div class="sample-desc">Minimal headers with no verifiable signatures</div>
+        <div class="sample-caption">Minimal headers with no verifiable signatures</div>
       </button>
     </div>
 
     <div class="sidebar-bottom">
       {% if session.get('user_id') %}
-        <div class="analyst-info">
-          <div class="analyst-avatar">{{ session.get('username')[:2].upper() }}</div>
-          <div class="analyst-details">
-            <div class="analyst-handle">{{ session.get('username') }}</div>
-            <div class="analyst-caption">Security Operations</div>
+        <div class="user-profile-badge">
+          <div class="avatar-circle">{{ session.get('username')[:2].upper() }}</div>
+          <div class="avatar-meta">
+            <div class="avatar-username">{{ session.get('username') }}</div>
+            <div class="avatar-sub">Security Operations</div>
           </div>
-          <a href="{{ url_for('logout') }}" class="btn-logout" title="Sign out">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <a href="{{ url_for('logout') }}" class="btn-signout" title="Sign out">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </a>
         </div>
       {% else %}
-        <a href="{{ url_for('login') }}" class="btn-auth-prompt">Sign in to save sessions &rarr;</a>
+        <a href="{{ url_for('login') }}" class="btn-sidebar-login">Sign in to save sessions &rarr;</a>
       {% endif %}
     </div>
   </aside>
 
-  <!-- Main Analysis Workspace -->
+  <!-- Main Chat Conversation Canvas -->
   <main class="workbench-canvas">
-    <div class="canvas-header">
-      <div class="canvas-header-left">
-        <button class="btn-icon mobile-menu-btn" onclick="toggleSidebar()">
+    <div class="canvas-topbar">
+      <div class="topbar-left">
+        <button class="btn-circle-toggle mobile-menu-btn" onclick="toggleSidebar()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <span class="workspace-mode">Live RFC 822 / MIME Analyzer</span>
+        <span class="topbar-title">RFC 822 Email Forensics</span>
       </div>
 
-      <div class="canvas-header-right">
-        <label class="custom-checkbox-label">
+      <div class="topbar-right">
+        <label class="custom-toggle">
           <input type="checkbox" id="vtCheckbox" checked>
-          <span>VirusTotal v3 Enrichment</span>
+          <span>VirusTotal API v3 Enrichment</span>
         </label>
-        <button class="btn-icon" onclick="startNewTriage()" title="Reset session">
+        <button class="btn-circle-toggle" onclick="startNewTriage()" title="Reset Chat">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
         </button>
       </div>
     </div>
 
-    <!-- Scrollable Messages / Triage Flow -->
+    <!-- Scrollable Messages Area -->
     <div class="canvas-scroll-container" id="chatScrollArea">
-      <div class="canvas-body" id="chatMessages">
+      <div class="canvas-messages" id="chatMessages">
         
         <!-- Welcome Screen -->
-        <div class="editorial-welcome" id="welcomeScreen">
-          <div class="editorial-meta">DetectLab Cybersecurity Framework</div>
-          <h1 class="editorial-title">Automated Phishing Analysis</h1>
-          <p class="editorial-summary">
-            Inspect raw <code>.eml</code> email files in an isolated execution sandbox. Verifies cryptographic sender signatures, inspects embedded hyperlinks, and computes in-memory SHA-256 digests enriched via VirusTotal API v3.
+        <div class="chat-welcome" id="welcomeScreen">
+          <div class="welcome-badge">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h1 class="welcome-title">What email would you like to inspect?</h1>
+          <p class="welcome-desc">
+            Attach or drop any <code>.eml</code> email file to evaluate headers, SPF/DKIM authentication, embedded hyperlinks, and attachment SHA-256 digests in an isolated sandbox.
           </p>
 
-          <div class="inspection-cards-grid">
-            <div class="inspection-card" onclick="loadSample('suspicious.eml')">
-              <div class="card-indicator-row">
-                <span class="indicator-label label-threat">Threat Analysis</span>
+          <div class="welcome-cards-grid">
+            <div class="welcome-prompt-card" onclick="loadSample('suspicious.eml')">
+              <div class="card-status-row">
+                <span class="tag-status tag-danger">Threat Analysis</span>
               </div>
-              <div class="card-heading">Analyze suspicious lure</div>
-              <div class="card-caption">Detects display name spoofing, mismatched return paths, and dangerous attachments.</div>
+              <div class="card-prompt-title">Analyze suspicious spoofing lure</div>
+              <div class="card-prompt-desc">Tests From vs Reply-To mismatches, heuristic suspicious links, and dangerous double extensions.</div>
             </div>
 
-            <div class="inspection-card" onclick="loadSample('benign.eml')">
-              <div class="card-indicator-row">
-                <span class="indicator-label label-clean">Authentic Alignment</span>
+            <div class="welcome-prompt-card" onclick="loadSample('benign.eml')">
+              <div class="card-status-row">
+                <span class="tag-status tag-success">Authentic Sender</span>
               </div>
-              <div class="card-heading">Verify authentic sender</div>
-              <div class="card-caption">Confirms valid SPF and DKIM signatures with clean plain text payload.</div>
+              <div class="card-prompt-title">Verify authentic business email</div>
+              <div class="card-prompt-desc">Confirms passing SPF, DKIM, and DMARC alignments with a clean text attachment.</div>
             </div>
 
-            <div class="inspection-card" onclick="loadSample('inconclusive.eml')">
-              <div class="card-indicator-row">
-                <span class="indicator-label label-neutral">Inconclusive Baseline</span>
+            <div class="welcome-prompt-card" onclick="loadSample('inconclusive.eml')">
+              <div class="card-status-row">
+                <span class="tag-status tag-warning">Inconclusive Baseline</span>
               </div>
-              <div class="card-heading">Test inconclusive sample</div>
-              <div class="card-caption">Observes engine scoring behavior when essential authentication records are missing.</div>
+              <div class="card-prompt-title">Inspect inconclusive email</div>
+              <div class="card-prompt-desc">Observes engine scoring behavior when essential authentication records are missing.</div>
             </div>
 
-            <div class="inspection-card" onclick="document.getElementById('fileUploadInput').click()">
-              <div class="card-indicator-row">
-                <span class="indicator-label label-neutral">Custom File</span>
+            <div class="welcome-prompt-card" onclick="document.getElementById('fileUploadInput').click()">
+              <div class="card-status-row">
+                <span class="tag-status tag-neutral">Custom File</span>
               </div>
-              <div class="card-heading">Upload custom .eml</div>
-              <div class="card-caption">Upload any RFC 822 format file up to 5MB directly from local storage.</div>
+              <div class="card-prompt-title">Upload .eml from disk</div>
+              <div class="card-prompt-desc">Upload any RFC 822 format email up to 5MB directly from your machine.</div>
             </div>
           </div>
         </div>
@@ -146,9 +148,9 @@
       </div>
     </div>
 
-    <!-- Handcrafted Bottom Input Panel -->
+    <!-- Handcrafted Bottom Chat Floating Dock -->
     <div class="canvas-input-dock">
-      <div class="dock-inner" id="dropZone">
+      <div class="dock-container" id="dropZone">
         <!-- Selected File Banner -->
         <div class="attached-file-strip" id="attachedFilePreview" style="display: none;">
           <div class="file-strip-content">
@@ -160,7 +162,7 @@
 
         <div class="input-command-bar">
           <button class="btn-attach" onclick="document.getElementById('fileUploadInput').click()" title="Attach .eml file">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
           
           <input type="file" id="fileUploadInput" accept=".eml" style="display: none;" onchange="handleFileSelected(this)">
@@ -168,18 +170,18 @@
           <textarea 
             id="chatPromptInput" 
             rows="1" 
-            placeholder="Type a query or drag a .eml file into workspace..." 
+            placeholder="Ask a question or drop a .eml file to triage..." 
             onkeydown="handleInputKeydown(event)"
             oninput="autoResizeTextarea(this)"
           ></textarea>
 
-          <button class="btn-execute" id="sendBtn" onclick="handleSend()" title="Run Analysis">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          <button class="btn-send-round" id="sendBtn" onclick="handleSend()" title="Run Analysis">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
         </div>
 
-        <div class="dock-guarantee">
-          Safety Contract: All attachments are processed in memory. Byte payloads are never written or executed.
+        <div class="dock-disclaimer">
+          DetectLab Execution Contract: Attachments are parsed strictly in memory and never executed on the host.
         </div>
       </div>
     </div>
@@ -207,7 +209,7 @@ function toggleSidebar() {
 
 function autoResizeTextarea(el) {
   el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
 }
 
 function handleInputKeydown(e) {
@@ -239,44 +241,46 @@ function clearAttachedFile() {
 function startNewTriage() {
   const container = document.getElementById('chatMessages');
   container.innerHTML = `
-    <div class="editorial-welcome" id="welcomeScreen">
-      <div class="editorial-meta">DetectLab Cybersecurity Framework</div>
-      <h1 class="editorial-title">Automated Phishing Analysis</h1>
-      <p class="editorial-summary">
-        Inspect raw <code>.eml</code> email files in an isolated execution sandbox. Verifies cryptographic sender signatures, inspects embedded hyperlinks, and computes in-memory SHA-256 digests enriched via VirusTotal API v3.
+    <div class="chat-welcome" id="welcomeScreen">
+      <div class="welcome-badge">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h1 class="welcome-title">What email would you like to inspect?</h1>
+      <p class="welcome-desc">
+        Attach or drop any <code>.eml</code> email file to evaluate headers, SPF/DKIM authentication, embedded hyperlinks, and attachment SHA-256 digests in an isolated sandbox.
       </p>
 
-      <div class="inspection-cards-grid">
-        <div class="inspection-card" onclick="loadSample('suspicious.eml')">
-          <div class="card-indicator-row">
-            <span class="indicator-label label-threat">Threat Analysis</span>
+      <div class="welcome-cards-grid">
+        <div class="welcome-prompt-card" onclick="loadSample('suspicious.eml')">
+          <div class="card-status-row">
+            <span class="tag-status tag-danger">Threat Analysis</span>
           </div>
-          <div class="card-heading">Analyze suspicious lure</div>
-          <div class="card-caption">Detects display name spoofing, mismatched return paths, and dangerous attachments.</div>
+          <div class="card-prompt-title">Analyze suspicious spoofing lure</div>
+          <div class="card-prompt-desc">Tests From vs Reply-To mismatches, heuristic suspicious links, and dangerous double extensions.</div>
         </div>
 
-        <div class="inspection-card" onclick="loadSample('benign.eml')">
-          <div class="card-indicator-row">
-            <span class="indicator-label label-clean">Authentic Alignment</span>
+        <div class="welcome-prompt-card" onclick="loadSample('benign.eml')">
+          <div class="card-status-row">
+            <span class="tag-status tag-success">Authentic Sender</span>
           </div>
-          <div class="card-heading">Verify authentic sender</div>
-          <div class="card-caption">Confirms valid SPF and DKIM signatures with clean plain text payload.</div>
+          <div class="card-prompt-title">Verify authentic business email</div>
+          <div class="card-prompt-desc">Confirms passing SPF, DKIM, and DMARC alignments with a clean text attachment.</div>
         </div>
 
-        <div class="inspection-card" onclick="loadSample('inconclusive.eml')">
-          <div class="card-indicator-row">
-            <span class="indicator-label label-neutral">Inconclusive Baseline</span>
+        <div class="welcome-prompt-card" onclick="loadSample('inconclusive.eml')">
+          <div class="card-status-row">
+            <span class="tag-status tag-warning">Inconclusive Baseline</span>
           </div>
-          <div class="card-heading">Test inconclusive sample</div>
-          <div class="card-caption">Observes engine scoring behavior when essential authentication records are missing.</div>
+          <div class="card-prompt-title">Inspect inconclusive email</div>
+          <div class="card-prompt-desc">Observes engine scoring behavior when essential authentication records are missing.</div>
         </div>
 
-        <div class="inspection-card" onclick="document.getElementById('fileUploadInput').click()">
-          <div class="card-indicator-row">
-            <span class="indicator-label label-neutral">Custom File</span>
+        <div class="welcome-prompt-card" onclick="document.getElementById('fileUploadInput').click()">
+          <div class="card-status-row">
+            <span class="tag-status tag-neutral">Custom File</span>
           </div>
-          <div class="card-heading">Upload custom .eml</div>
-          <div class="card-caption">Upload any RFC 822 format file up to 5MB directly from local storage.</div>
+          <div class="card-prompt-title">Upload .eml from disk</div>
+          <div class="card-prompt-desc">Upload any RFC 822 format email up to 5MB directly from your machine.</div>
         </div>
       </div>
     </div>
@@ -290,7 +294,7 @@ function scrollToBottom() {
   scrollArea.scrollTop = scrollArea.scrollHeight;
 }
 
-// Drag and drop handling
+// Drag & Drop
 const dropZone = document.getElementById('dropZone');
 ['dragenter', 'dragover'].forEach(name => {
   dropZone.addEventListener(name, (e) => {
@@ -349,7 +353,7 @@ function appendThinkingMessage() {
   thinking.className = 'message-row assistant-row';
   thinking.id = 'thinkingMsg';
   thinking.innerHTML = `
-    <div class="terminal-badge">SEC</div>
+    <div class="bot-badge">SEC</div>
     <div class="message-bubble assistant-bubble thinking-bubble">
       <div class="pulse-dots">
         <span></span><span></span><span></span>
@@ -396,13 +400,13 @@ function renderAssistantTriageResponse(data) {
   let urlRows = '';
   if (urls.length > 0) {
     urlRows = urls.map(u => {
-      const isSusp = u.suspicious ? `<span class="flag-danger">Suspicious</span>` : `<span class="flag-clean">Clean</span>`;
+      const isSusp = u.suspicious ? `<span class="tag-status tag-danger">Suspicious</span>` : `<span class="tag-status tag-success">Clean</span>`;
       const vt = (enr.urls && enr.urls[u.url]) ? enr.urls[u.url] : null;
       let vtTxt = '<span class="text-subtle">Not queried</span>';
       if (vt) {
-        if (vt.status === 'malicious') vtTxt = `<span class="flag-danger">Malicious (${vt.malicious})</span>`;
-        else if (vt.status === 'suspicious') vtTxt = `<span class="flag-warning">Suspicious (${vt.suspicious})</span>`;
-        else vtTxt = `<span class="flag-neutral">${vt.status}</span>`;
+        if (vt.status === 'malicious') vtTxt = `<span class="tag-status tag-danger">Malicious (${vt.malicious})</span>`;
+        else if (vt.status === 'suspicious') vtTxt = `<span class="tag-status tag-warning">Suspicious (${vt.suspicious})</span>`;
+        else vtTxt = `<span class="tag-status tag-neutral">${vt.status}</span>`;
       }
       return `<tr><td><code class="code-inline">${escapeHtml(u.url)}</code></td><td>${isSusp}</td><td>${vtTxt}</td></tr>`;
     }).join('');
@@ -414,9 +418,9 @@ function renderAssistantTriageResponse(data) {
       const vt = (enr.files && enr.files[att.sha256]) ? enr.files[att.sha256] : null;
       let vtTxt = '<span class="text-subtle">Not queried</span>';
       if (vt) {
-        if (vt.status === 'malicious') vtTxt = `<span class="flag-danger">Malicious (${vt.malicious})</span>`;
-        else if (vt.status === 'suspicious') vtTxt = `<span class="flag-warning">Suspicious (${vt.suspicious})</span>`;
-        else vtTxt = `<span class="flag-neutral">${vt.status}</span>`;
+        if (vt.status === 'malicious') vtTxt = `<span class="tag-status tag-danger">Malicious (${vt.malicious})</span>`;
+        else if (vt.status === 'suspicious') vtTxt = `<span class="tag-status tag-warning">Suspicious (${vt.suspicious})</span>`;
+        else vtTxt = `<span class="tag-status tag-neutral">${vt.status}</span>`;
       }
       return `<tr><td><strong>${escapeHtml(att.filename)}</strong></td><td>${att.size} B</td><td><code class="code-hash">${att.sha256.substring(0, 16)}...</code></td><td>${vtTxt}</td></tr>`;
     }).join('');
@@ -427,16 +431,16 @@ function renderAssistantTriageResponse(data) {
   const fname = data.filename;
 
   assistantMsg.innerHTML = `
-    <div class="terminal-badge">SEC</div>
+    <div class="bot-badge">SEC</div>
     <div class="message-bubble assistant-bubble">
       
-      <!-- Top Dossier Header -->
-      <div class="dossier-header ${badgeClass}-bar">
-        <div class="dossier-left">
-          <span class="verdict-tag ${badgeClass}">${v.verdict}</span>
+      <!-- Verdict Top Bar -->
+      <div class="verdict-banner ${badgeClass}-bar">
+        <div class="banner-left">
+          <span class="verdict-badge ${badgeClass}">${v.verdict}</span>
           <span class="threat-metric">Threat Score: <strong>${v.score}</strong></span>
         </div>
-        <div class="dossier-actions">
+        <div class="banner-actions">
           <button class="btn-dossier" onclick="downloadJsonReport('${escapeHtml(fname)}')">JSON Report</button>
           <button class="btn-dossier btn-dossier-primary" onclick="downloadMdReport('${escapeHtml(fname)}')">Markdown Report</button>
         </div>
@@ -447,11 +451,11 @@ function renderAssistantTriageResponse(data) {
       </div>
 
       <div class="security-advisory">
-        <div class="advisory-title">Execution Isolation Guarantee</div>
-        <div class="advisory-body">Attachments are parsed strictly in memory. Binary payloads are never decoded to disk or executed on host.</div>
+        <div class="advisory-title">Execution Isolation Contract</div>
+        <div class="advisory-body">Attachments are parsed strictly in memory. Binary payloads are never decoded to physical disk or executed on host.</div>
       </div>
 
-      <!-- Headers Block -->
+      <!-- Headers Section -->
       <div class="report-section">
         <div class="section-heading">Header Provenance</div>
         <table class="report-table">
@@ -464,22 +468,22 @@ function renderAssistantTriageResponse(data) {
         </table>
       </div>
 
-      <!-- Authentication Block -->
+      <!-- Authentication Section -->
       <div class="report-section">
-        <div class="section-heading">Sender Authentication Protocol</div>
+        <div class="section-heading">Authentication Protocol Alignment</div>
         <table class="report-table">
           <thead>
             <tr><th>Protocol</th><th>Result</th><th>Validation Assessment</th></tr>
           </thead>
           <tbody>
-            <tr><td><strong>SPF</strong></td><td><code class="code-inline">${a.spf}</code></td><td>${a.spf === 'pass' ? 'Sender IP Authorized' : a.spf === 'fail' ? '<span class="flag-danger">Failed</span>' : 'Neutral / Unknown'}</td></tr>
-            <tr><td><strong>DKIM</strong></td><td><code class="code-inline">${a.dkim}</code></td><td>${a.dkim === 'pass' ? 'Cryptographic Signature Verified' : a.dkim === 'fail' ? '<span class="flag-danger">Signature Mismatch</span>' : 'Not Present'}</td></tr>
-            <tr><td><strong>DMARC</strong></td><td><code class="code-inline">${a.dmarc}</code></td><td>${a.dmarc === 'pass' ? 'Domain Policy Aligned' : a.dmarc === 'fail' ? '<span class="flag-danger">Policy Rejected</span>' : 'No Policy Declared'}</td></tr>
+            <tr><td><strong>SPF</strong></td><td><code class="code-inline">${a.spf}</code></td><td>${a.spf === 'pass' ? 'Sender IP Authorized' : a.spf === 'fail' ? '<span class="tag-status tag-danger">Failed</span>' : 'Neutral / Unknown'}</td></tr>
+            <tr><td><strong>DKIM</strong></td><td><code class="code-inline">${a.dkim}</code></td><td>${a.dkim === 'pass' ? 'Signature Cryptographically Valid' : a.dkim === 'fail' ? '<span class="tag-status tag-danger">Signature Mismatch</span>' : 'Not Present'}</td></tr>
+            <tr><td><strong>DMARC</strong></td><td><code class="code-inline">${a.dmarc}</code></td><td>${a.dmarc === 'pass' ? 'Domain Policy Aligned' : a.dmarc === 'fail' ? '<span class="tag-status tag-danger">Policy Rejected</span>' : 'No Policy Declared'}</td></tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Links Block -->
+      <!-- Links Section -->
       ${urls.length > 0 ? `
       <div class="report-section">
         <div class="section-heading">Discovered Hyperlinks (${urls.length})</div>
@@ -490,7 +494,7 @@ function renderAssistantTriageResponse(data) {
       </div>
       ` : ''}
 
-      <!-- Attachments Block -->
+      <!-- Attachments Section -->
       ${atts.length > 0 ? `
       <div class="report-section">
         <div class="section-heading">Attachment Metadata (${atts.length})</div>
@@ -501,7 +505,7 @@ function renderAssistantTriageResponse(data) {
       </div>
       ` : ''}
 
-      <!-- Body Preview Block -->
+      <!-- Body Preview Section -->
       ${p.body_text ? `
       <div class="report-section">
         <div class="section-heading">Body Excerpt (Plaintext Sanitized)</div>
@@ -520,16 +524,16 @@ function renderAssistantTriageResponse(data) {
 
 function updateSidebarHistory(filename, verdict, id) {
   const list = document.getElementById('historyList');
-  const empty = list.querySelector('.sidebar-empty-state');
+  const empty = list.querySelector('.sidebar-empty');
   if (empty) empty.remove();
 
   const item = document.createElement('div');
-  item.className = 'history-entry';
-  const statusColor = verdict === 'Suspicious' ? 'status-danger' : verdict === 'Likely Benign' ? 'status-success' : 'status-warning';
+  item.className = 'history-bubble';
+  const statusColor = verdict === 'Suspicious' ? 'indicator-danger' : verdict === 'Likely Benign' ? 'indicator-success' : 'indicator-warning';
   item.innerHTML = `
-    <svg class="entry-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-    <span class="entry-name" title="${filename}">${filename}</span>
-    <span class="entry-status ${statusColor}"></span>
+    <svg class="bubble-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <span class="bubble-title" title="${filename}">${filename}</span>
+    <span class="bubble-indicator ${statusColor}"></span>
   `;
   if (id) {
     item.onclick = () => loadHistoryItem(id);
@@ -574,7 +578,7 @@ async function handleSend() {
       const botMsg = document.createElement('div');
       botMsg.className = 'message-row assistant-row';
       botMsg.innerHTML = `
-        <div class="terminal-badge">SEC</div>
+        <div class="bot-badge">SEC</div>
         <div class="message-bubble assistant-bubble">
           <p>Please attach a <code>.eml</code> email sample (click the clip or drag a file) to execute automated triage. You can also select any <strong>Laboratory Sample</strong> in the sidebar.</p>
         </div>
@@ -611,7 +615,7 @@ async function handleSend() {
       const errRow = document.createElement('div');
       errRow.className = 'message-row assistant-row';
       errRow.innerHTML = `
-        <div class="terminal-badge">SEC</div>
+        <div class="bot-badge">SEC</div>
         <div class="message-bubble assistant-bubble" style="border-left: 3px solid #dc2626;">
           <strong>Analysis Halted:</strong> ${escapeHtml(data.error || 'Parsing error.')}
         </div>
@@ -621,7 +625,7 @@ async function handleSend() {
     }
   } catch (err) {
     removeThinkingMessage();
-    alert("Connection error occurred while executing triage.");
+    alert("Connection error during triage execution.");
   }
 }
 

@@ -731,6 +731,165 @@ html, body {
   color: var(--apple-text-title);
 }
 
+/* 21st.dev / Motion Inspired Components & Ambient Animations */
+.motion-glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  opacity: 0.45;
+  z-index: 0;
+  animation: floatOrb 12s ease-in-out infinite alternate;
+}
+
+.motion-glow-1 {
+  width: 480px;
+  height: 480px;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.16) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+.motion-glow-2 {
+  width: 380px;
+  height: 380px;
+  top: 520px;
+  right: 15%;
+  background: radial-gradient(circle, rgba(234, 88, 12, 0.09) 0%, rgba(255, 255, 255, 0) 70%);
+  animation-delay: -5s;
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(-50%, 0px) scale(1); }
+  50% { transform: translate(-48%, 25px) scale(1.08); }
+  100% { transform: translate(-52%, -15px) scale(0.96); }
+}
+
+/* Motion Reveal On Scroll */
+.motion-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.motion-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.motion-stagger-1 { transition-delay: 0.06s; }
+.motion-stagger-2 { transition-delay: 0.14s; }
+.motion-stagger-3 { transition-delay: 0.22s; }
+.motion-stagger-4 { transition-delay: 0.30s; }
+
+/* Shimmer Eyebrow Badge */
+.motion-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.eyebrow-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: badgeShimmer 4s infinite cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes badgeShimmer {
+  0%, 20% { left: -100%; }
+  60%, 100% { left: 200%; }
+}
+
+/* Button Ambient Motion Glow */
+.btn-motion-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-motion-glow::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.btn-motion-glow:hover::after {
+  opacity: 1;
+}
+
+/* 3D Perspective Canvas Card */
+.motion-card-3d {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  transform-style: preserve-3d;
+}
+
+.pass-text {
+  color: #16a34a;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.warn-text {
+  color: #d97706;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* Metrics Ribbon */
+.motion-metrics-section {
+  max-width: 940px;
+  margin: 4.5rem auto 0 auto;
+  padding: 0 1.5rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  background: #ffffff;
+  border: 1px solid var(--apple-border);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 2rem;
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.metric-num {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--apple-orange);
+  margin-bottom: 0.4rem;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--apple-text-secondary);
+  line-height: 1.4;
+}
+
+.motion-icon-glow {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-card:hover .motion-icon-glow {
+  transform: scale(1.08);
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.25);
+  background: rgba(249, 115, 22, 0.14);
+}
+
 /* Authentication Screen */
 .apple-auth-canvas {
   height: calc(100vh - 52px);

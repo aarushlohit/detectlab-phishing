@@ -1,18 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="apple-landing-scroll">
+<div class="apple-landing-scroll" id="landingScrollContainer">
   
-  <!-- Apple Hero Section -->
-  <section class="apple-hero">
-    <div class="hero-eyebrow">
+  <!-- Ambient Motion Glow Background -->
+  <div class="motion-glow-orb motion-glow-1"></div>
+  <div class="motion-glow-orb motion-glow-2"></div>
+
+  <!-- Apple / 21st.dev Hero Section -->
+  <section class="apple-hero motion-reveal" data-motion="fade-up">
+    <div class="hero-eyebrow motion-badge">
       <span class="eyebrow-accent">New</span>
       <span class="eyebrow-text">DetectLab Forensics Engine 3.0</span>
+      <span class="eyebrow-shimmer"></span>
     </div>
 
-    <h1 class="hero-title">
+    <h1 class="hero-title motion-reveal-text">
       Automated Phishing Analysis.<br>
-      <span class="hero-gradient-text">Precise. Safe. Explainable.</span>
+      <span class="hero-gradient-text motion-shimmer-text">Precise. Safe. Explainable.</span>
     </h1>
 
     <p class="hero-description">
@@ -22,12 +27,12 @@
 
     <div class="hero-cta-cluster">
       {% if session.get('user_id') %}
-        <a href="{{ url_for('dashboard') }}" class="btn-apple-large btn-apple-large-primary" id="launchTriageBtn">
+        <a href="{{ url_for('dashboard') }}" class="btn-apple-large btn-apple-large-primary btn-motion-glow" id="launchTriageBtn">
           <span>Go to Triage Dashboard</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
       {% else %}
-        <a href="{{ url_for('login') }}" class="btn-apple-large btn-apple-large-primary" id="launchTriageBtn">
+        <a href="{{ url_for('login') }}" class="btn-apple-large btn-apple-large-primary btn-motion-glow" id="launchTriageBtn">
           <span>Launch Triage Chat</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
@@ -37,8 +42,8 @@
       </a>
     </div>
 
-    <!-- Product Showcase Floating Canvas -->
-    <div class="product-preview-card" onclick="window.location.href='{% if session.get('user_id') %}{{ url_for('dashboard') }}{% else %}{{ url_for('login') }}{% endif %}'">
+    <!-- Product Showcase Floating Canvas with 3D perspective tilt & motion preview -->
+    <div class="product-preview-card motion-card-3d" id="previewWindowCard" onclick="window.location.href='{% if session.get('user_id') %}{{ url_for('dashboard') }}{% else %}{{ url_for('login') }}{% endif %}'">
       <div class="preview-chrome-bar">
         <div class="window-dots">
           <span class="dot dot-close"></span>
@@ -54,34 +59,34 @@
 
       <div class="preview-inner-canvas">
         <div class="mock-sidebar">
-          <div class="mock-item active">
+          <div class="mock-item active" id="demoItemSuspicious" onclick="event.stopPropagation(); switchDemoSample('suspicious')">
             <span class="mock-dot danger"></span>
             <span>suspicious.eml</span>
           </div>
-          <div class="mock-item">
+          <div class="mock-item" id="demoItemBenign" onclick="event.stopPropagation(); switchDemoSample('benign')">
             <span class="mock-dot success"></span>
             <span>benign.eml</span>
           </div>
-          <div class="mock-item">
+          <div class="mock-item" id="demoItemInconclusive" onclick="event.stopPropagation(); switchDemoSample('inconclusive')">
             <span class="mock-dot warning"></span>
             <span>inconclusive.eml</span>
           </div>
         </div>
 
-        <div class="mock-workspace-content">
-          <div class="mock-verdict-banner">
+        <div class="mock-workspace-content" id="demoWorkspaceCanvas">
+          <div class="mock-verdict-banner" id="demoVerdictBanner">
             <div class="mock-verdict-left">
-              <span class="mock-badge">Suspicious</span>
-              <span class="mock-score">Threat Score: 12</span>
+              <span class="mock-badge" id="demoBadge">Suspicious</span>
+              <span class="mock-score" id="demoScore">Threat Score: 12</span>
             </div>
-            <div class="mock-tags">
+            <div class="mock-tags" id="demoTags">
               <span class="mini-tag">AUTH_FAIL</span>
               <span class="mini-tag">HEADER_MISMATCH</span>
               <span class="mini-tag">ATTACH_NOT_EXECUTED</span>
             </div>
           </div>
 
-          <div class="mock-data-table">
+          <div class="mock-data-table" id="demoTable">
             <div class="mock-row header-row">
               <span>Authentication Mechanism</span>
               <span>Result</span>
@@ -89,18 +94,18 @@
             </div>
             <div class="mock-row">
               <span>SPF (Sender Policy)</span>
-              <span class="fail-text">fail</span>
-              <span>Sender IP 192.168.1.100 unauthorized</span>
+              <span class="fail-text" id="demoSpf">fail</span>
+              <span id="demoSpfDetail">Sender IP 192.168.1.100 unauthorized</span>
             </div>
             <div class="mock-row">
               <span>DKIM Signature</span>
-              <span class="fail-text">fail</span>
-              <span>Cryptographic key mismatch</span>
+              <span class="fail-text" id="demoDkim">fail</span>
+              <span id="demoDkimDetail">Cryptographic key mismatch</span>
             </div>
             <div class="mock-row">
               <span>DMARC Domain Alignment</span>
-              <span class="fail-text">fail</span>
-              <span>Quarantine policy enforced</span>
+              <span class="fail-text" id="demoDmarc">fail</span>
+              <span id="demoDmarcDetail">Quarantine policy enforced</span>
             </div>
           </div>
 
@@ -112,40 +117,40 @@
     </div>
   </section>
 
-  <!-- Architectural Feature Grid -->
+  <!-- Architectural Feature Grid with Scroll-Triggered Stagger Animations -->
   <section class="apple-features-section" id="architecture-specs">
-    <div class="section-lead">
+    <div class="section-lead motion-reveal" data-motion="fade-up">
       <h2 class="section-title">Engineered for absolute laboratory safety.</h2>
       <p class="section-sub">Every email analysis is subject to strict deterministic controls designed for cybersecurity operations.</p>
     </div>
 
     <div class="bento-grid">
-      <div class="bento-card bento-hero">
-        <div class="bento-icon-wrapper">
+      <div class="bento-card bento-hero motion-reveal motion-stagger-1" data-motion="fade-up">
+        <div class="bento-icon-wrapper motion-icon-glow">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <h3>Zero Attachment Execution</h3>
         <p>Attachments are calculated purely in-memory. SHA-256 digests are fingerprinted without ever decoding binary payloads to host storage or invoking system runtimes.</p>
       </div>
 
-      <div class="bento-card">
-        <div class="bento-icon-wrapper">
+      <div class="bento-card motion-reveal motion-stagger-2" data-motion="fade-up">
+        <div class="bento-icon-wrapper motion-icon-glow">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
         </div>
         <h3>Authentication Alignment</h3>
         <p>Parses standard <code>Authentication-Results</code> for SPF, DKIM, and DMARC alignments, plus heuristic checks for display-name and Return-Path spoofing.</p>
       </div>
 
-      <div class="bento-card">
-        <div class="bento-icon-wrapper">
+      <div class="bento-card motion-reveal motion-stagger-3" data-motion="fade-up">
+        <div class="bento-icon-wrapper motion-icon-glow">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
         <h3>VirusTotal API v3</h3>
         <p>Automated reputation lookups for detected hyperlinks and attachment SHA-256 hashes with local disk caching and backoff logic.</p>
       </div>
 
-      <div class="bento-card">
-        <div class="bento-icon-wrapper">
+      <div class="bento-card motion-reveal motion-stagger-4" data-motion="fade-up">
+        <div class="bento-icon-wrapper motion-icon-glow">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         </div>
         <h3>Structured Audits</h3>
@@ -154,8 +159,26 @@
     </div>
   </section>
 
+  <!-- Interactive Sandbox Live Metrics Ribbon -->
+  <section class="motion-metrics-section motion-reveal" data-motion="fade-up">
+    <div class="metrics-grid">
+      <div class="metric-block">
+        <div class="metric-num" data-target="0">0 ms</div>
+        <div class="metric-label">Disk Attachment Writes (Pure In-Memory)</div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-num" data-target="100">100%</div>
+        <div class="metric-label">Deterministic Header Verification</div>
+      </div>
+      <div class="metric-block">
+        <div class="metric-num">v3 REST</div>
+        <div class="metric-label">VirusTotal Threat Telemetry</div>
+      </div>
+    </div>
+  </section>
+
   <!-- Apple Minimalist Footer -->
-  <footer class="apple-footer">
+  <footer class="apple-footer motion-reveal" data-motion="fade-up">
     <div class="footer-inner">
       <div class="footer-left">
         <span class="footer-brand">DetectLab Security</span> &bull; <span>Designed for isolated cybersecurity education and laboratory research.</span>
@@ -172,4 +195,131 @@
   </footer>
 
 </div>
+
+<!-- 21st.dev inspired Smooth Motion & 3D Interactive Script -->
+<script>
+  // 1. Intersection Observer for Scroll Animations
+  document.addEventListener("DOMContentLoaded", () => {
+    const scrollContainer = document.getElementById("landingScrollContainer");
+    const reveals = document.querySelectorAll(".motion-reveal");
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+        }
+      });
+    }, {
+      root: scrollContainer,
+      threshold: 0.12,
+      rootMargin: "0px 0px -40px 0px"
+    });
+
+    reveals.forEach(el => observer.observe(el));
+
+    // 2. Interactive 3D Perspective Tilt on Mouse Move
+    const card = document.getElementById("previewWindowCard");
+    if (card) {
+      card.addEventListener("mousemove", (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -4.5;
+        const rotateY = ((x - centerX) / centerX) * 4.5;
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+      });
+
+      card.addEventListener("mouseleave", () => {
+        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)`;
+      });
+    }
+  });
+
+  // 3. Interactive Sample Preview Switcher
+  const sampleData = {
+    suspicious: {
+      badge: "Suspicious",
+      badgeClass: "badge-danger",
+      score: "Threat Score: 12",
+      scoreClass: "score-danger",
+      tags: ["AUTH_FAIL", "HEADER_MISMATCH", "ATTACH_NOT_EXECUTED"],
+      spf: "fail",
+      spfDetail: "Sender IP 192.168.1.100 unauthorized",
+      dkim: "fail",
+      dkimDetail: "Cryptographic key mismatch",
+      dmarc: "fail",
+      dmarcDetail: "Quarantine policy enforced"
+    },
+    benign: {
+      badge: "Likely Benign",
+      badgeClass: "badge-success",
+      score: "Threat Score: 0",
+      scoreClass: "score-success",
+      tags: ["AUTH_PASS", "ATTACH_CLEAN", "LOW_RISK"],
+      spf: "pass",
+      spfDetail: "Sender authorized under SPF policy",
+      dkim: "pass",
+      dkimDetail: "Valid RSA-SHA256 signature verified",
+      dmarc: "pass",
+      dmarcDetail: "Domain aligned with policy pass"
+    },
+    inconclusive: {
+      badge: "Inconclusive",
+      badgeClass: "badge-warning",
+      score: "Threat Score: 3",
+      scoreClass: "score-warning",
+      tags: ["INSUFFICIENT_HEADERS", "MANUAL_REVIEW"],
+      spf: "none",
+      spfDetail: "No SPF record found for sender domain",
+      dkim: "none",
+      dkimDetail: "No DKIM signature present",
+      dmarc: "none",
+      dmarcDetail: "DMARC policy absent"
+    }
+  };
+
+  function switchDemoSample(type) {
+    const data = sampleData[type];
+    if (!data) return;
+
+    // Toggle active sidebar items
+    document.querySelectorAll(".mock-sidebar .mock-item").forEach(item => item.classList.remove("active"));
+    const activeItem = document.getElementById("demoItem" + type.charAt(0).toUpperCase() + type.slice(1));
+    if (activeItem) activeItem.classList.add("active");
+
+    // Fade canvas smoothly
+    const canvas = document.getElementById("demoWorkspaceCanvas");
+    canvas.style.opacity = "0.4";
+    canvas.style.transform = "scale(0.99)";
+    canvas.style.transition = "all 0.18s ease";
+
+    setTimeout(() => {
+      document.getElementById("demoBadge").textContent = data.badge;
+      document.getElementById("demoScore").textContent = data.score;
+      
+      const tagsContainer = document.getElementById("demoTags");
+      tagsContainer.innerHTML = data.tags.map(t => `<span class="mini-tag">${t}</span>`).join("");
+
+      const spfEl = document.getElementById("demoSpf");
+      spfEl.textContent = data.spf;
+      spfEl.className = data.spf === "pass" ? "pass-text" : data.spf === "fail" ? "fail-text" : "warn-text";
+      document.getElementById("demoSpfDetail").textContent = data.spfDetail;
+
+      const dkimEl = document.getElementById("demoDkim");
+      dkimEl.textContent = data.dkim;
+      dkimEl.className = data.dkim === "pass" ? "pass-text" : data.dkim === "fail" ? "fail-text" : "warn-text";
+      document.getElementById("demoDkimDetail").textContent = data.dkimDetail;
+
+      const dmarcEl = document.getElementById("demoDmarc");
+      dmarcEl.textContent = data.dmarc;
+      dmarcEl.className = data.dmarc === "pass" ? "pass-text" : data.dmarc === "fail" ? "fail-text" : "warn-text";
+      document.getElementById("demoDmarcDetail").textContent = data.dmarcDetail;
+
+      canvas.style.opacity = "1";
+      canvas.style.transform = "scale(1)";
+    }, 120);
+  }
+</script>
 {% endblock %}

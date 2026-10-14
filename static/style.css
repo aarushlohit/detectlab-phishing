@@ -828,6 +828,68 @@ html, body {
   opacity: 1;
 }
 
+/* 3D Cyber Forensics Canvas Container */
+.motion-3d-scene-container {
+  max-width: 760px;
+  margin: 0 auto 3rem auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.motion-canvas-element {
+  width: 100%;
+  max-width: 760px;
+  height: 240px;
+  border-radius: var(--radius-lg);
+  background: radial-gradient(circle at center, rgba(249, 115, 22, 0.04) 0%, rgba(255, 255, 255, 0.5) 75%);
+  border: 1px solid rgba(249, 115, 22, 0.15);
+  box-shadow: 0 12px 36px -8px rgba(249, 115, 22, 0.1), 0 2px 8px rgba(0, 0, 0, 0.03);
+  cursor: grab;
+  touch-action: none;
+}
+
+.motion-canvas-element:active {
+  cursor: grabbing;
+}
+
+.motion-canvas-caption {
+  margin-top: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--apple-text-secondary);
+  font-family: var(--font-mono);
+}
+
+.pulse-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--apple-orange);
+  box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 7px rgba(249, 115, 22, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+  }
+}
+
 /* 3D Perspective Canvas Card */
 .motion-card-3d {
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;

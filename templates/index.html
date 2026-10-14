@@ -42,6 +42,15 @@
       </a>
     </div>
 
+    <!-- 3D Interactive Cyber Forensics Orbit Canvas -->
+    <div class="motion-3d-scene-container">
+      <canvas id="motionCyber3dCanvas" class="motion-canvas-element" width="760" height="240"></canvas>
+      <div class="motion-canvas-caption">
+        <span class="pulse-indicator"></span>
+        <span>Interactive 3D Threat Mesh &bull; Drag to rotate nodes</span>
+      </div>
+    </div>
+
     <!-- Product Showcase Floating Canvas with 3D perspective tilt & motion preview -->
     <div class="product-preview-card motion-card-3d" id="previewWindowCard" onclick="window.location.href='{% if session.get('user_id') %}{{ url_for('dashboard') }}{% else %}{{ url_for('login') }}{% endif %}'">
       <div class="preview-chrome-bar">
@@ -321,5 +330,160 @@
       canvas.style.transform = "scale(1)";
     }, 120);
   }
+
+  // 4. Modern 3D Cyber Forensics Rotating Orbit Mesh Engine
+  (function init3DCyberScene() {
+    const canvas = document.getElementById("motionCyber3dCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    // Dynamic HD DPI Scaling
+    const dpr = window.devicePixelRatio || 1;
+    const width = 760;
+    const height = 240;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
+
+    // 3D Nodes setup (Security Telemetry Sphere)
+    const nodeCount = 38;
+    const nodes = [];
+    const radius = 95;
+
+    for (let i = 0; i < nodeCount; i++) {
+      const phi = Math.acos(-1 + (2 * i) / nodeCount);
+      const theta = Math.sqrt(nodeCount * Math.PI) * phi;
+      nodes.push({
+        x: radius * Math.cos(theta) * Math.sin(phi),
+        y: radius * Math.sin(theta) * Math.sin(phi),
+        z: radius * Math.cos(phi),
+        size: Math.random() * 2.5 + 2,
+        isAlert: i % 7 === 0, // Malicious/Threat indicators
+        label: i === 0 ? "SPF" : i === 7 ? "DKIM" : i === 14 ? "VT:v3" : i === 21 ? "SHA-256" : null
+      });
+    }
+
+    let rotX = 0.25;
+    let rotY = 0;
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let autoSpeed = 0.007;
+
+    canvas.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    window.addEventListener("mouseup", () => {
+      isDragging = false;
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      rotY += dx * 0.008;
+      rotX += dy * 0.008;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    function render3D() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Auto rotation when not dragging
+      if (!isDragging) {
+        rotY += autoSpeed;
+        rotX += autoSpeed * 0.35;
+      }
+
+      const cosY = Math.cos(rotY);
+      const sinY = Math.sin(rotY);
+      const cosX = Math.cos(rotX);
+      const sinX = Math.sin(rotX);
+
+      const fov = 340;
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Project nodes
+      const projected = nodes.map((node) => {
+        // Y-axis rotation
+        let x1 = node.x * cosY - node.z * sinY;
+        let z1 = node.z * cosY + node.x * sinY;
+
+        // X-axis rotation
+        let y2 = node.y * cosX - z1 * sinX;
+        let z2 = z1 * cosX + node.y * sinX;
+
+        // Perspective projection
+        const scale = fov / (fov + z2 + 180);
+        return {
+          x2d: centerX + x1 * scale,
+          y2d: centerY + y2 * scale,
+          z2: z2,
+          scale: scale,
+          isAlert: node.isAlert,
+          label: node.label
+        };
+      });
+
+      // Sort by depth (painter's algorithm)
+      projected.sort((a, b) => b.z2 - a.z2);
+
+      // Draw connecting geometric 3D wireframe edges
+      for (let i = 0; i < projected.length; i++) {
+        for (let j = i + 1; j < projected.length; j++) {
+          const dx = projected[i].x2d - projected[j].x2d;
+          const dy = projected[i].y2d - projected[j].y2d;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 85) {
+            const alpha = (1 - dist / 85) * Math.min(projected[i].scale, projected[j].scale) * 0.45;
+            ctx.beginPath();
+            ctx.moveTo(projected[i].x2d, projected[i].y2d);
+            ctx.lineTo(projected[j].x2d, projected[j].y2d);
+            ctx.strokeStyle = (projected[i].isAlert || projected[j].isAlert) 
+              ? `rgba(239, 68, 68, ${alpha * 0.9})` 
+              : `rgba(249, 115, 22, ${alpha * 0.75})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw 3D security nodes & labels
+      projected.forEach((p) => {
+        const radius = Math.max(1.8, 3.2 * p.scale);
+        ctx.beginPath();
+        ctx.arc(p.x2d, p.y2d, radius, 0, Math.PI * 2);
+
+        if (p.isAlert) {
+          ctx.fillStyle = "#ef4444";
+          ctx.shadowColor = "rgba(239, 68, 68, 0.7)";
+          ctx.shadowBlur = 8;
+        } else {
+          ctx.fillStyle = "#f97316";
+          ctx.shadowColor = "rgba(249, 115, 22, 0.6)";
+          ctx.shadowBlur = 6;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Render Security Node Tag Labels
+        if (p.label && p.scale > 0.82) {
+          ctx.fillStyle = p.isAlert ? "#b91c1c" : "#ea580c";
+          ctx.font = `600 ${Math.round(10 * p.scale)}px "JetBrains Mono", monospace`;
+          ctx.fillText(p.label, p.x2d + 8, p.y2d + 3);
+        }
+      });
+
+      requestAnimationFrame(render3D);
+    }
+
+    render3D();
+  })();
 </script>
 {% endblock %}

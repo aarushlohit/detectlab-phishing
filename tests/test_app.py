@@ -23,7 +23,8 @@ def test_index_landing_page(client):
 
 
 def test_user_registration_and_redirect_to_dashboard(client):
-    username = "testanalyst_dash"
+    import uuid
+    username = f"user_{uuid.uuid4().hex[:8]}"
     password = "password123"
 
     # Register should redirect to dashboard
@@ -40,7 +41,7 @@ def test_user_registration_and_redirect_to_dashboard(client):
     # Login should redirect to dashboard
     login_resp = client.post("/login", data={"username": username, "password": password}, follow_redirects=True)
     assert login_resp.status_code == 200
-    assert b"Welcome back, testanalyst_dash!" in login_resp.data
+    assert f"Welcome back, {username}!".encode() in login_resp.data
 
 
 def test_unauthenticated_dashboard_redirects_to_login(client):

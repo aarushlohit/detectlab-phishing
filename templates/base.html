@@ -68,5 +68,32 @@
 
     {% block content %}{% endblock %}
   </main>
+
+  <script>
+    // Auto-dismiss floating flash toast notifications
+    document.addEventListener('DOMContentLoaded', () => {
+      const toasts = document.querySelectorAll('.apple-toast');
+      toasts.forEach((toast) => {
+        // Dismiss on click
+        toast.style.cursor = 'pointer';
+        toast.addEventListener('click', () => {
+          toast.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-6px)';
+          setTimeout(() => toast.remove(), 250);
+        });
+
+        // Auto remove from DOM after CSS fade completes
+        setTimeout(() => {
+          if (toast.parentElement) {
+            toast.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-6px)';
+            setTimeout(() => toast.remove(), 350);
+          }
+        }, 3200);
+      });
+    });
+  </script>
 </body>
 </html>

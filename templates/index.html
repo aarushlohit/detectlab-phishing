@@ -21,17 +21,24 @@
     </p>
 
     <div class="hero-cta-cluster">
-      <a href="{{ url_for('workbench') }}" class="btn-apple-large btn-apple-large-primary" id="launchTriageBtn">
-        <span>Launch Triage Chat</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </a>
+      {% if session.get('user_id') %}
+        <a href="{{ url_for('dashboard') }}" class="btn-apple-large btn-apple-large-primary" id="launchTriageBtn">
+          <span>Go to Triage Dashboard</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn-apple-large btn-apple-large-primary" id="launchTriageBtn">
+          <span>Launch Triage Chat</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      {% endif %}
       <a href="#architecture-specs" class="btn-apple-large btn-apple-large-secondary">
         <span>View Architecture</span>
       </a>
     </div>
 
     <!-- Product Showcase Floating Canvas -->
-    <div class="product-preview-card" onclick="window.location.href='{{ url_for('workbench') }}'">
+    <div class="product-preview-card" onclick="window.location.href='{% if session.get('user_id') %}{{ url_for('dashboard') }}{% else %}{{ url_for('login') }}{% endif %}'">
       <div class="preview-chrome-bar">
         <div class="window-dots">
           <span class="dot dot-close"></span>
@@ -98,7 +105,7 @@
           </div>
 
           <div class="mock-footer-cta">
-            <span>Click to enter interactive Triage Chat &rarr;</span>
+            <span>Enter interactive Triage Dashboard &rarr;</span>
           </div>
         </div>
       </div>
@@ -154,7 +161,11 @@
         <span class="footer-brand">DetectLab Security</span> &bull; <span>Designed for isolated cybersecurity education and laboratory research.</span>
       </div>
       <div class="footer-right">
-        <a href="{{ url_for('workbench') }}">Launch Workspace</a>
+        {% if session.get('user_id') %}
+          <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Sign In</a>
+        {% endif %}
         <a href="https://github.com/aarushlohit/detectlab-phishing" target="_blank">GitHub</a>
       </div>
     </div>

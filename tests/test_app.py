@@ -1,5 +1,5 @@
 """
-Tests for Flask web application and authentication.
+Tests for Flask web application and authentication flow.
 """
 
 import io
@@ -14,30 +14,40 @@ def client():
         yield client
 
 
-def test_index_route(client):
+def test_index_landing_page(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"DetectLab" in response.data
-    assert b"What email would you like to inspect?" in response.data
+    assert b"Automated Phishing Analysis" in response.data
+    assert b"Launch Triage Chat" in response.data or b"Dashboard" in response.data
 
 
-def test_user_registration_and_login(client):
-    username = "testanalyst2"
+def test_user_registration_and_redirect_to_dashboard(client):
+    username = "testanalyst_dash"
     password = "password123"
 
-    # Register
+    # Register should redirect to dashboard
     reg_resp = client.post("/register", data={"username": username, "password": password}, follow_redirects=True)
     assert reg_resp.status_code == 200
-
-    # Login
-    login_resp = client.post("/login", data={"username": username, "password": password}, follow_redirects=True)
-    assert login_resp.status_code == 200
-    assert b"testanalyst2" in login_resp.data
+    assert b"Welcome to DetectLab!" in reg_resp.data
+    assert b"RFC 822 Email Forensics" in reg_resp.data or b"Triage" in reg_resp.data
 
     # Logout
     logout_resp = client.get("/logout", follow_redirects=True)
     assert logout_resp.status_code == 200
     assert b"Sign in" in logout_resp.data
+
+    # Login should redirect to dashboard
+    login_resp = client.post("/login", data={"username": username, "password": password}, follow_redirects=True)
+    assert login_resp.status_code == 200
+    assert b"Welcome back, testanalyst_dash!" in login_resp.data
+
+
+def test_unauthenticated_dashboard_redirects_to_login(client):
+    response = client.get("/dashboard", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Please sign in to access the triage dashboard." in response.data
+    assert b"Welcome Back" in response.data
 
 
 def test_api_triage_upload(client):

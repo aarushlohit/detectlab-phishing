@@ -58,14 +58,21 @@ logger = logging.getLogger("detectlab.app")
 
 
 @app.route("/")
-@app.route("/workbench")
 def index():
+    return render_template("index.html")
+
+@app.route("/dashboard")
+@app.route("/workbench")
+def dashboard():
     user_id = session.get("user_id")
+    if not user_id:
+        flash("Please sign in to access the triage dashboard.", "info")
+        return redirect(url_for("login"))
     history = db.get_user_history(user_id) if user_id else []
     return render_template("chat.html", history=history)
 
 def workbench():
-    return index()
+    return dashboard()
 
 @app.route("/landing")
 def landing():
@@ -223,7 +230,7 @@ def login():
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             flash(f"Welcome back, {user['username']}!", "success")
-            return redirect(url_for("index"))
+            return redirect(url_for("dashboard"))
         flash("Invalid username or password.", "error")
     return render_template("login.html")
 
@@ -240,7 +247,7 @@ def register():
                 session["user_id"] = user["id"]
                 session["username"] = user["username"]
             flash("Welcome to DetectLab! Account created.", "success")
-            return redirect(url_for("workbench"))
+            return redirect(url_for("dashboard"))
         flash(msg, "error")
     return render_template("register.html")
 

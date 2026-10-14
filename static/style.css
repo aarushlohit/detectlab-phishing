@@ -890,6 +890,64 @@ html, body {
   }
 }
 
+/* 21st.dev Animated Motion Cursor */
+.custom-cursor-dot {
+  position: fixed;
+  top: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--apple-orange);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  transition: transform 0.05s linear, opacity 0.2s ease, width 0.2s ease, height 0.2s ease, background-color 0.2s ease;
+  will-change: transform;
+}
+
+.custom-cursor-ring {
+  position: fixed;
+  top: -18px;
+  left: -18px;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(249, 115, 22, 0.45);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99998;
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background-color 0.25s ease, opacity 0.2s ease;
+  will-change: transform;
+}
+
+.custom-cursor-ring.cursor-hover {
+  top: -24px;
+  left: -24px;
+  width: 48px;
+  height: 48px;
+  border-color: rgba(249, 115, 22, 0.85);
+  background-color: rgba(249, 115, 22, 0.08);
+  backdrop-filter: blur(2px);
+}
+
+.custom-cursor-dot.cursor-hover-dot {
+  background-color: var(--apple-orange-hover);
+  transform: scale(1.4);
+}
+
+.custom-cursor-ring.cursor-click {
+  transform: scale(0.85) !important;
+  background-color: rgba(249, 115, 22, 0.18);
+  border-color: var(--apple-orange);
+}
+
+/* Hide custom cursor on mobile touch */
+@media (pointer: coarse) {
+  .custom-cursor-dot,
+  .custom-cursor-ring {
+    display: none !important;
+  }
+}
+
 /* 3D Perspective Canvas Card */
 .motion-card-3d {
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;

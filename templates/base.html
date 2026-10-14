@@ -69,7 +69,85 @@
     {% block content %}{% endblock %}
   </main>
 
+  <!-- 21st.dev / Apple-inspired Animated Motion Cursor -->
+  <div class="custom-cursor-dot" id="cursorDot"></div>
+  <div class="custom-cursor-ring" id="cursorRing"></div>
+
   <script>
+    // Animated Fluid Motion Cursor (21st.dev inspired)
+    (function initAnimatedCursor() {
+      // Only enable on desktop pointer devices
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+
+      const dot = document.getElementById("cursorDot");
+      const ring = document.getElementById("cursorRing");
+      if (!dot || !ring) return;
+
+      let mouseX = -100;
+      let mouseY = -100;
+      let ringX = -100;
+      let ringY = -100;
+      let isHovering = false;
+      let isClicking = false;
+
+      window.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        // Position tiny center dot immediately
+        dot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+
+        // Check if cursor moved inside interactive element
+        const target = e.target.closest("a, button, input, textarea, select, .history-bubble, .sample-pill-card, .mock-item, .product-preview-card, canvas");
+        if (target) {
+          if (!isHovering) {
+            isHovering = true;
+            ring.classList.add("cursor-hover");
+            dot.classList.add("cursor-hover-dot");
+          }
+        } else {
+          if (isHovering) {
+            isHovering = false;
+            ring.classList.remove("cursor-hover");
+            dot.classList.remove("cursor-hover-dot");
+          }
+        }
+      });
+
+      window.addEventListener("mousedown", () => {
+        isClicking = true;
+        ring.classList.add("cursor-click");
+      });
+
+      window.addEventListener("mouseup", () => {
+        isClicking = false;
+        ring.classList.remove("cursor-click");
+      });
+
+      // Smooth trailing ring physics (Lerp)
+      function animateRing() {
+        const ease = 0.18;
+        ringX += (mouseX - ringX) * ease;
+        ringY += (mouseY - ringY) * ease;
+
+        ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+        requestAnimationFrame(animateRing);
+      }
+
+      requestAnimationFrame(animateRing);
+
+      // Hide custom cursor when mouse leaves window
+      document.addEventListener("mouseleave", () => {
+        dot.style.opacity = "0";
+        ring.style.opacity = "0";
+      });
+
+      document.addEventListener("mouseenter", () => {
+        dot.style.opacity = "1";
+        ring.style.opacity = "1";
+      });
+    })();
+
     // Auto-dismiss floating flash toast notifications
     document.addEventListener('DOMContentLoaded', () => {
       const toasts = document.querySelectorAll('.apple-toast');

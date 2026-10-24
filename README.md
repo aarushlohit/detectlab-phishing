@@ -16,11 +16,13 @@ DetectLab analyzes synthetic and authorized `.eml` email files without executing
   - `From` vs `Reply-To` / `Return-Path` mismatches
   - IP-based URLs and credential harvesting path patterns
   - Suspicious or double file extensions (`.pdf.exe`)
-- **VirusTotal API v3 Enrichment:**
-  - Automated reputation lookups for detected URLs and attachment SHA-256 hashes
-  - Disk-backed TTL cache (`.vt_cache`) to prevent rate-limit exhaustion
-  - Exponential backoff retry on HTTP 429
-  - Strict privacy rules: **only** URLs and SHA-256 hashes are sent — headers, subject lines, bodies, and attachment bytes are never transmitted
+- **Local-First Detection & VirusTotal API v3 Enrichment:**
+  - **Local-First Pre-Evaluation:** Evaluates all local heuristics, authentication headers (SPF/DKIM/DMARC), and structural indicators first.
+  - **Quota-Conscious Bypass:** If local rules confirm suspicious threats, external VirusTotal queries are bypassed to preserve API quota (`VT_SKIPPED_LOCAL_FIRST`).
+  - **Automated Fallback:** If local rules cannot detect any suspicious indicators (e.g. inconclusive or benign), queries are sent to VirusTotal API v3 for external reputation intelligence.
+  - **Explicit User Override:** Ticking the VirusTotal checkbox in the Web UI or passing `--vt` in the CLI forces external VirusTotal queries explicitly.
+  - **Disk-backed TTL cache:** Local cache (`.vt_cache`) prevents redundant queries and rate-limit exhaustion.
+  - **Strict privacy rules:** Only URLs and SHA-256 hashes are ever sent — headers, subject lines, bodies, and attachment bytes are never transmitted.
 - **Dual Interface:**
   - **CLI (Primary MVP):** Flexible, scriptable tool with colored terminal output, exit codes, and JSON/Markdown export options.
   - **Modern Web UI:** Clean white & orange interface featuring landing page aesthetics, user authentication (local MySQL with SQLite fallback), file upload triage, and downloadable reports.

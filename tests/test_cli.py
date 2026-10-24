@@ -51,3 +51,13 @@ def test_cli_no_vt_flag():
     proc = subprocess.run(cmd, capture_output=True, text=True)
     assert proc.returncode == 0
     assert "VT_DISABLED" in proc.stdout or "Reason codes:" in proc.stdout
+
+
+def test_cli_local_first_skips_vt_when_suspicious():
+    # In local-first mode (default without --vt or --no-vt), suspicious sample skips VirusTotal
+    cmd = [sys.executable, "triage.py", "samples/suspicious.eml"]
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    assert proc.returncode == 0
+    assert "Verdict: Suspicious" in proc.stdout
+    assert "VT_SKIPPED_LOCAL_FIRST" in proc.stdout
+

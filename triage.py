@@ -131,16 +131,31 @@ def main() -> int:
         print("Reason codes: SAFE_PARSER_ERROR")
         return 1
 
-    # VirusTotal enrichment determination
+    # VirusTotal enrichment determination - Local-First Architecture
     api_key = get_vt_api_key()
     vt_enabled_env = os.getenv("VT_ENABLED", "true").lower() in ("true", "1", "yes")
 
+    # Local-first rule-based pre-evaluation
+    local_verdict = make_verdict(parsed, {"status": "disabled", "urls": {}, "files": {}})
+    local_is_suspicious = (local_verdict["verdict"] == "Suspicious")
+
     should_enrich = False
-    if args.no_vt:
+    enrichment_status = "disabled"
+
+    if args.no_vt or not api_key or not vt_enabled_env:
         should_enrich = False
+        enrichment_status = "disabled"
     elif args.vt:
+        # Explicit request: force VirusTotal enrichment
         should_enrich = True
-    elif api_key and vt_enabled_env:
+    elif local_is_suspicious:
+        # Local-first: local rules already detected suspicious indicators; skip VirusTotal
+        should_enrich = False
+        enrichment_status = "skipped_local_suspicious"
+        if args.verbose:
+            logger.info("Local rules detected suspicious indicators. Skipping VirusTotal query.")
+    else:
+        # Local-first: local rules cannot detect suspicious indicators; send request to VirusTotal API
         should_enrich = True
 
     enrichment: dict | None = None
@@ -149,7 +164,7 @@ def main() -> int:
         cache_dir = os.getenv("VT_CACHE_DIR", ".vt_cache")
         enrichment = run_enrichment(parsed, api_key, cache_dir, timeout)
     else:
-        enrichment = {"status": "disabled", "urls": {}, "files": {}}
+        enrichment = {"status": enrichment_status, "urls": {}, "files": {}}
 
     verdict_data = make_verdict(parsed, enrichment)
 

@@ -124,6 +124,8 @@ def to_markdown(parsed: dict[str, Any], verdict: dict[str, Any], enrichment: dic
                 st = vt_info.get("status")
                 m_count = vt_info.get("malicious", 0)
                 vt_repr = f"**{st}** ({m_count} flags)" if m_count > 0 else f"{st}"
+            elif enrichment and enrichment.get("status") == "skipped_local_suspicious":
+                vt_repr = "Skipped (Local suspicious)"
             else:
                 vt_repr = "Not queried"
             lines.append(f"| `{url_str}` | `{src}` | {susp} | {vt_repr} |")
@@ -151,6 +153,8 @@ def to_markdown(parsed: dict[str, Any], verdict: dict[str, Any], enrichment: dic
                 st = vt_info.get("status")
                 m_count = vt_info.get("malicious", 0)
                 vt_repr = f"**{st}** ({m_count} flags)" if m_count > 0 else f"{st}"
+            elif enrichment and enrichment.get("status") == "skipped_local_suspicious":
+                vt_repr = "Skipped (Local suspicious)"
             else:
                 vt_repr = "Not queried"
             lines.append(f"| `{fname}` | `{mime_type}` | {size} | `{sha[:16]}...` | {vt_repr} |")

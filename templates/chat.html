@@ -86,9 +86,9 @@
       </div>
 
       <div class="topbar-right">
-        <label class="custom-toggle">
-          <input type="checkbox" id="vtCheckbox" checked>
-          <span>VirusTotal API v3 Enrichment</span>
+        <label class="custom-toggle" title="When unchecked, Local-First mode is active: VirusTotal is queried only if local rules cannot detect suspicious indicators. Tick to explicitly send requests to VirusTotal.">
+          <input type="checkbox" id="vtCheckbox">
+          <span>Explicit VirusTotal Query</span>
         </label>
         <button class="btn-circle-toggle" onclick="startNewTriage()" title="Reset Chat">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
@@ -358,7 +358,7 @@ function appendThinkingMessage() {
       <div class="pulse-dots">
         <span></span><span></span><span></span>
       </div>
-      <span class="thinking-text">Extracting MIME headers, computing SHA-256 digests &amp; querying VirusTotal API v3...</span>
+      <span class="thinking-text">Extracting MIME headers, computing SHA-256 digests &amp; evaluating local forensics...</span>
     </div>
   `;
   container.appendChild(thinking);
@@ -407,6 +407,8 @@ function renderAssistantTriageResponse(data) {
         if (vt.status === 'malicious') vtTxt = `<span class="tag-status tag-danger">Malicious (${vt.malicious})</span>`;
         else if (vt.status === 'suspicious') vtTxt = `<span class="tag-status tag-warning">Suspicious (${vt.suspicious})</span>`;
         else vtTxt = `<span class="tag-status tag-neutral">${vt.status}</span>`;
+      } else if (enr.status === 'skipped_local_suspicious') {
+        vtTxt = '<span class="tag-status tag-neutral" title="Skipped by Local-First engine because threat was already confirmed locally">Skipped (Local Threat Detected)</span>';
       }
       return `<tr><td><code class="code-inline">${escapeHtml(u.url)}</code></td><td>${isSusp}</td><td>${vtTxt}</td></tr>`;
     }).join('');
@@ -421,6 +423,8 @@ function renderAssistantTriageResponse(data) {
         if (vt.status === 'malicious') vtTxt = `<span class="tag-status tag-danger">Malicious (${vt.malicious})</span>`;
         else if (vt.status === 'suspicious') vtTxt = `<span class="tag-status tag-warning">Suspicious (${vt.suspicious})</span>`;
         else vtTxt = `<span class="tag-status tag-neutral">${vt.status}</span>`;
+      } else if (enr.status === 'skipped_local_suspicious') {
+        vtTxt = '<span class="tag-status tag-neutral" title="Skipped by Local-First engine because threat was already confirmed locally">Skipped (Local Threat Detected)</span>';
       }
       return `<tr><td><strong>${escapeHtml(att.filename)}</strong></td><td>${att.size} B</td><td><code class="code-hash">${att.sha256.substring(0, 16)}...</code></td><td>${vtTxt}</td></tr>`;
     }).join('');
@@ -429,6 +433,14 @@ function renderAssistantTriageResponse(data) {
   const jsonReport = data.report_json;
   const mdReport = data.report_md;
   const fname = data.filename;
+
+  const isLocalFirstSkipped = enr.status === 'skipped_local_suspicious' || (v.reason_codes || []).includes('VT_SKIPPED_LOCAL_FIRST');
+  const localFirstNotice = isLocalFirstSkipped ? `
+    <div style="margin: 0.6rem 0; padding: 0.55rem 0.8rem; background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 8px; font-size: 0.82rem; color: #15803d; display: flex; align-items: center; gap: 0.5rem;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+      <span><strong>Local-First Optimized:</strong> Threats confirmed via local rule engine. External VirusTotal API call was bypassed to conserve quota.</span>
+    </div>
+  ` : '';
 
   assistantMsg.innerHTML = `
     <div class="bot-badge">SEC</div>
@@ -449,6 +461,7 @@ function renderAssistantTriageResponse(data) {
       <div class="reason-codes-wrap">
         ${reasonTags}
       </div>
+      ${localFirstNotice}
 
       <div class="security-advisory">
         <div class="advisory-title">Execution Isolation Contract</div>
@@ -597,9 +610,11 @@ async function handleSend() {
 
   appendThinkingMessage();
 
+  const isVtChecked = document.getElementById('vtCheckbox').checked;
   const formData = new FormData();
   formData.append('eml_file', fileToUpload);
-  formData.append('enable_vt', document.getElementById('vtCheckbox').checked ? '1' : '0');
+  formData.append('explicit_vt', isVtChecked ? '1' : '0');
+  formData.append('enable_vt', isVtChecked ? '1' : '0');
 
   try {
     const res = await fetch('/api/triage', {

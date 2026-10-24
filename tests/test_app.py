@@ -84,3 +84,78 @@ def test_sample_route_serves_eml(client):
     response = client.get("/samples/suspicious.eml")
     assert response.status_code == 200
     assert b"PayPal Support" in response.data
+
+
+def test_api_triage_local_first_skips_vt_when_suspicious(client, monkeypatch):
+    from unittest.mock import MagicMock
+    import app as app_module
+
+    mock_enrich = MagicMock()
+    monkeypatch.setattr(app_module, "run_enrichment", mock_enrich)
+
+    with open("samples/suspicious.eml", "rb") as f:
+        eml_bytes = f.read()
+
+    data = {
+        "eml_file": (io.BytesIO(eml_bytes), "suspicious.eml"),
+        "explicit_vt": "0"
+    }
+
+    response = client.post("/api/triage", data=data, content_type="multipart/form-data")
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data["success"] is True
+    assert json_data["verdict"]["verdict"] == "Suspicious"
+    assert "VT_SKIPPED_LOCAL_FIRST" in json_data["verdict"]["reason_codes"]
+    assert json_data["enrichment"]["status"] == "skipped_local_suspicious"
+    # Verify VirusTotal enrichment was NOT called because local rules detected suspicious
+    mock_enrich.assert_not_called()
+
+
+def test_api_triage_local_first_calls_vt_when_not_suspicious(client, monkeypatch):
+    from unittest.mock import MagicMock
+    import app as app_module
+
+    mock_enrich = MagicMock(return_value={"status": "ok", "urls": {}, "files": {}})
+    monkeypatch.setattr(app_module, "run_enrichment", mock_enrich)
+
+    with open("samples/inconclusive.eml", "rb") as f:
+        eml_bytes = f.read()
+
+    data = {
+        "eml_file": (io.BytesIO(eml_bytes), "inconclusive.eml"),
+        "explicit_vt": "0"
+    }
+
+    response = client.post("/api/triage", data=data, content_type="multipart/form-data")
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data["success"] is True
+    # Local rules could not detect suspicious, so VT was called
+    mock_enrich.assert_called_once()
+
+
+def test_api_triage_explicit_vt_calls_vt_even_when_suspicious(client, monkeypatch):
+    from unittest.mock import MagicMock
+    import app as app_module
+
+    mock_enrich = MagicMock(return_value={"status": "ok", "urls": {}, "files": {}})
+    monkeypatch.setattr(app_module, "run_enrichment", mock_enrich)
+
+    with open("samples/suspicious.eml", "rb") as f:
+        eml_bytes = f.read()
+
+    # User explicitly checks the VirusTotal checkbox
+    data = {
+        "eml_file": (io.BytesIO(eml_bytes), "suspicious.eml"),
+        "explicit_vt": "1"
+    }
+
+    response = client.post("/api/triage", data=data, content_type="multipart/form-data")
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data["success"] is True
+    assert json_data["verdict"]["verdict"] == "Suspicious"
+    # Even though suspicious, explicit_vt forces VT lookup
+    mock_enrich.assert_called_once()
+

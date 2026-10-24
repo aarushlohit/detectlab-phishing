@@ -119,17 +119,49 @@ def api_triage():
         logger.error(f"Failed to parse email: {exc}")
         return jsonify({"success": False, "error": "SAFE_PARSER_ERROR: Malformed input"}), 422
 
-    # VirusTotal enrichment
-    enable_vt = request.form.get("enable_vt") == "1"
-    api_key = get_vt_api_key()
-    enrichment = None
+    # VirusTotal enrichment - Local-First Architecture
+    explicit_vt = (
+        request.form.get("explicit_vt") == "1"
+        or request.form.get("force_vt") == "1"
+        or request.form.get("enable_vt") == "1"
+    )
+    # Check if disabled by client (e.g. unit tests or explicit no-vt parameter)
+    disable_vt = (
+        request.form.get("no_vt") == "1"
+        or (request.form.get("enable_vt") == "0" and "explicit_vt" not in request.form and "force_vt" not in request.form)
+    )
 
-    if enable_vt and api_key:
-        timeout = int(os.getenv("VT_TIMEOUT_SECONDS", "10"))
-        cache_dir = os.getenv("VT_CACHE_DIR", ".vt_cache")
+    api_key = get_vt_api_key()
+    timeout = int(os.getenv("VT_TIMEOUT_SECONDS", "10"))
+    cache_dir = os.getenv("VT_CACHE_DIR", ".vt_cache")
+
+    # Local-first rule-based pre-evaluation
+    local_verdict = make_verdict(parsed, {"status": "disabled", "urls": {}, "files": {}})
+    local_is_suspicious = (local_verdict["verdict"] == "Suspicious")
+
+    should_enrich = False
+    enrichment_status = "disabled"
+
+    if disable_vt or not api_key:
+        should_enrich = False
+        enrichment_status = "disabled"
+    elif explicit_vt:
+        # User explicitly checked VirusTotal API checkbox
+        should_enrich = True
+    elif local_is_suspicious:
+        # Local-first: local rule-based engine detected suspicious indicators; skip VT
+        should_enrich = False
+        enrichment_status = "skipped_local_suspicious"
+        logger.info("Local-first triage detected suspicious indicators; skipping VirusTotal API query.")
+    else:
+        # Local-first: local rules cannot detect any suspicious; send request to VirusTotal API
+        should_enrich = True
+
+    enrichment: dict | None = None
+    if should_enrich:
         enrichment = run_enrichment(parsed, api_key, cache_dir, timeout)
     else:
-        enrichment = {"status": "disabled", "urls": {}, "files": {}}
+        enrichment = {"status": enrichment_status, "urls": {}, "files": {}}
 
     verdict_data = make_verdict(parsed, enrichment)
 

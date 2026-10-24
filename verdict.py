@@ -160,6 +160,8 @@ def make_verdict(parsed: dict[str, Any], enrichment: dict[str, Any] | None = Non
         vt_status = enrichment.get("status", "ok")
         if vt_status == "disabled":
             reason_codes.append("VT_DISABLED")
+        elif vt_status == "skipped_local_suspicious":
+            reason_codes.append("VT_SKIPPED_LOCAL_FIRST")
         elif vt_status == "rate_limited":
             reason_codes.append("VT_RATE_LIMITED")
         elif vt_status == "error":
